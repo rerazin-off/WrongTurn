@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Личный кабинет - Wrong Turn{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Приветствие -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-2">
+                                <i class="fas fa-user-circle me-2"></i>
+                                {{ user.get_full_name|default:user.username }}
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                На сайте с {{ user.registered_at|date:"d.m.Y" }}
+                                {% if user.role.name == 'admin' %}
+                                <span class="badge bg-light text-dark ms-2">
+                                    <i class="fas fa-shield-alt me-1"></i>Администратор
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="display-4">
+                                {{ user.get_success_rate }}%
+                            </div>
+                            <div class="small">общая успеваемость</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-value">{{ user.total_tests }}</div>
+                <div class="stat-label">Пройдено тестов</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon text-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value text-success">{{ user.total_correct }}</div>
+                <div class="stat-label">Правильных ответов</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon text-danger">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-value text-danger">{{ user.total_incorrect }}</div>
+                <div class="stat-label">Неправильных ответов</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon text-warning">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-value">
+                    {% if user.get_success_rate >= 80 %}
+                    Отлично
+                    {% elif user.get_success_rate >= 60 %}
+                    Хорошо
+                    {% else %}
+                    Учиться
+                    {% endif %}
+                </div>
+                <div class="stat-label">Уровень подготовки</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Прогресс по темам -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Прогресс по темам ПДД
+                </div>
+                <div class="card-body">
+                    <canvas id="topicsChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Соотношение ответов
+                </div>
+                <div class="card-body">
+                    <canvas id="answersChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Последние результаты -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>
+                    Последние результаты тестирования
+                </div>
+                <div class="card-body">
+                    {% if recent_results %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Билет</th>
+                                    <th>Результат</th>
+                                    <th>Правильно</th>
+                                    <th>Ошибки</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in recent_results %}
+                                <tr>
+                                    <td>{{ result.date|date:"d.m.Y H:i" }}</td>
+                                    <td>Билет №{{ result.ticket_number }}</td>
+                                    <td>{{ result.percentage }}%</td>
+                                    <td class="text-success">{{ result.correct }}</td>
+                                    <td class="text-danger">{{ result.incorrect }}</td>
+                                    <td>
+                                        {% if result.passed %}
+                                        <span class="badge bg-success">Сдан</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Не сдан</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">У вас пока нет пройденных тестов</p>
+                        <a href="{% url 'tests' %}" class="btn btn-primary">
+                            Начать тестирование
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Быстрые действия -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-bolt me-2"></i>
+                    Быстрые действия
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'take_test' ticket_id=1 %}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-play me-2"></i>
+                                Быстрый тест
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'exam_mode' %}" class="btn btn-outline-danger w-100 py-3">
+                                <i class="fas fa-gavel me-2"></i>
+                                Экзамен
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'marathon' %}" class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-infinity me-2"></i>
+                                Марафон
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'results' %}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Детальная статистика
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Передаем данные через data-атрибуты -->
+<div data-user-correct="{{ user.total_correct|default:0 }}" 
+     data-user-incorrect="{{ user.total_incorrect|default:0 }}"
+     style="display: none;"></div>
+
+<script>
+    (function() {
+        // Получаем данные из data-атрибутов
+        var dataElement = document.querySelector('[data-user-correct]');
+        var userCorrect = dataElement ? parseInt(dataElement.dataset.userCorrect) : 0;
+        var userIncorrect = dataElement ? parseInt(dataElement.dataset.userIncorrect) : 0;
+        
+        // График по темам
+        var topicsCanvas = document.getElementById('topicsChart');
+        if (topicsCanvas) {
+            var topicsCtx = topicsCanvas.getContext('2d');
+            new Chart(topicsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Знаки', 'Разметка', 'Перекрестки', 'Скорость', 'Штрафы', 'Безопасность'],
+                    datasets: [{
+                        label: 'Правильных ответов (%)',
+                        data: [85, 72, 68, 90, 75, 82],
+                        backgroundColor: 'rgba(102, 126, 234, 0.5)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Процент правильных ответов'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // График соотношения ответов
+        var answersCanvas = document.getElementById('answersChart');
+        if (answersCanvas && (userCorrect > 0 || userIncorrect > 0)) {
+            var answersCtx = answersCanvas.getContext('2d');
+            new Chart(answersCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Правильные ответы', 'Неправильные ответы'],
+                    datasets: [{
+                        data: [userCorrect, userIncorrect],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}
