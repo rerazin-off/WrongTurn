@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация - Wrong Turn{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div>
+    <h1 class="brand-title">Wrong Turn</h1>
+    <div class="auth-card">
+        <h3>Регистрация</h3>
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+            <input type="text" class="form-input" id="last_name" name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="*Фамилия" required>
+            <input type="text" class="form-input" id="first_name" name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="*Имя" required>
+            <input type="text" class="form-input" id="patronymic" name="patronymic" value="{{ form.patronymic.value|default:'' }}" placeholder="Отчество">
+            <input type="email" class="form-input" id="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Почта" required>
+            <input type="text" class="form-input" id="username" name="username" value="{{ form.username.value|default:'' }}" placeholder="*Логин" required>
+            <input type="password" class="form-input" id="password1" name="password1" placeholder="*Пароль" required>
+            <input type="password" class="form-input" id="password2" name="password2" placeholder="*Введите еще раз пароль" required>
+            <div class="text-center mb-2">
+                <button type="submit" class="btn-dark-main">Войти</button>
+            </div>
+        </form>
+        <p class="auth-hint">Уже есть аккаунт? <a href="{% url 'login' %}">Заходи!</a></p>
+    </div>
+</div>
+{% endblock %}
