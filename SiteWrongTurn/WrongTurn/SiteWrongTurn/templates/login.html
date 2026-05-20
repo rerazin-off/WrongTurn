@@ -1,50 +1,23 @@
 {% extends 'base.html' %}
 
 {% block title %}Вход - Wrong Turn{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center fade-in">
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header text-center">
-                <i class="fas fa-car fa-2x mb-2"></i>
-                <h3 class="mb-0">Добро пожаловать!</h3>
-                <p class="mb-0 mt-2">Войдите в свой аккаунт</p>
+<div>
+    <h1 class="brand-title">Wrong Turn</h1>
+    <div class="auth-card">
+        <h3>Авторизация</h3>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="text" class="form-input" id="username" name="username" placeholder="Логин" required>
+            <input type="password" class="form-input" id="password" name="password" placeholder="Пароль" required>
+            <div class="text-center mb-2">
+                <button type="submit" class="btn-dark-main">Войти</button>
             </div>
-            <div class="card-body p-4">
-                <form method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Логин или Email</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Пароль</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">Запомнить меня</label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 py-2">
-                        <i class="fas fa-sign-in-alt me-2"></i>Войти
-                    </button>
-                    
-                    <input type="hidden" name="next" value="{{ next }}">
-                </form>
-                
-                <div class="text-center mt-4">
-                    <p class="text-muted">
-                        Еще нет аккаунта? 
-                        <a href="{% url 'register' %}" class="text-decoration-none">Зарегистрироваться</a>
-                    </p>
-                </div>
-            </div>
-        </div>
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+        <p class="auth-hint">Нет аккаунта? <a href="{% url 'register' %}">Регистрируйся!</a></p>
     </div>
 </div>
 {% endblock %}
