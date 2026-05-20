@@ -3,8 +3,14 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import RegistrationForm, LoginForm
 from .models import User
+
+
+def is_admin(user):
+    """Проверка, является ли пользователь администратором"""
+    return user.is_authenticated and user.is_staff
 
 
 def index(request):
@@ -14,11 +20,23 @@ def index(request):
     return render(request, 'index.html')
 
 
+@login_required
 def home(request):
     """
-    Главная страница после авторизации
+    Главная страница после авторизации (для обычных пользователей)
     """
+    # Если пользователь - администратор, перенаправляем на админ-панель
+    if request.user.is_staff:
+        return redirect('admin_dashboard')
     return render(request, 'home.html')
+
+
+@user_passes_test(is_admin, login_url='index')
+def admin_dashboard(request):
+    """
+    Панель администратора (доступ только для staff)
+    """
+    return render(request, 'admin_dashboard.html')
 
 
 @csrf_protect
@@ -75,7 +93,11 @@ def login_view(request):
             if not request.POST.get('remember'):
                 request.session.set_expiry(0)
             
-            return redirect('home')  # Перенаправление на home
+            # Перенаправление в зависимости от роли
+            if user.is_staff:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('home')
         else:
             messages.error(request, 'Неверный логин или пароль. Пожалуйста, проверьте введенные данные.')
     
@@ -88,4 +110,4 @@ def logout_view(request):
     """
     logout(request)
     messages.info(request, 'Вы успешно вышли из системы.')
-    return redirect('index')  # Перенаправление на лендинг
+    return redirect('index')
