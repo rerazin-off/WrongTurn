@@ -1,28 +1,20 @@
 # admin.py
 
+from django.contrib.auth import get_user_model
 from django.contrib import admin
-from .models import Users, Bank_questions, Types, Testing, Results_testings
+from .models import User, Bank_questions, Types, Testing, Results_testings
+from django.contrib.auth.admin import UserAdmin
 
-
-@admin.register(Users)
-class UsersAdmin(admin.ModelAdmin):
-    list_display = ('id_user', 'login', 'last_name', 'name', 'email', 'admin_role', 'is_active')
-    list_filter = ('admin_role', 'is_active')
-    search_fields = ('login', 'last_name', 'name', 'email')
-    list_editable = ('admin_role',)
-    fieldsets = (
-        ('Основная информация', {
-            'fields': ('login', 'password', 'name', 'last_name', 'patronymic', 'birthday', 'email')
-        }),
-        ('Права доступа', {
-            'fields': ('admin_role', 'is_active', 'is_staff', 'is_superuser')
-        }),
-        ('Даты', {
-            'fields': ('last_login', 'date_joined')
+User = get_user_model()
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'last_name', 'first_name', 'is_active')
+    search_fields = ('username', 'email', 'last_name', 'first_name')
+    fieldsets = UserAdmin.fieldsets + (
+        ('Дополнительная информация', {
+            'fields': ('patronymic', 'birthday'),
         }),
     )
-    readonly_fields = ('last_login', 'date_joined')
-
 
 @admin.register(Bank_questions)
 class BankQuestionsAdmin(admin.ModelAdmin):

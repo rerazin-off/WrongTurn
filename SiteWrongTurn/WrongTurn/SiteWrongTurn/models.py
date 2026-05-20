@@ -3,32 +3,51 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-
-
-class Users(AbstractUser):
+from django.core.validators import RegexValidator
+class User(AbstractUser):
     """
-    Модель пользователя.
+    Расширенная модель пользователя
     """
-    id_user = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    patronymic = models.CharField(max_length=100, blank=True, null=True)
-    birthday = models.DateField()
-    login = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=128)
-    email = models.EmailField(unique=True)
-    admin_role = models.BooleanField(default=False)
-    groups = None
-    user_permissions = None
-    USERNAME_FIELD = 'login'
-    REQUIRED_FIELDS = ['name', 'last_name', 'email', 'birthday']
-
+    patronymic = models.CharField(
+        max_length=100,
+        verbose_name='Отчество',
+        blank=True,
+        null=True
+    )
+    
+    birthday = models.DateField(
+        verbose_name='Дата рождения',
+        blank=True,
+        null=True
+    )
+    
+    email = models.EmailField(
+        verbose_name='Email',
+        unique=True,
+        error_messages={
+            'unique': 'Пользователь с таким email уже существует',
+            'invalid': 'Введите корректный email адрес'
+        }
+    )
+    
+    username_validator = RegexValidator(
+        regex=r'^[a-zA-Z0-9._-]+$',
+        message='Логин может содержать только латинские буквы, цифры и символы . - _'
+    )
+    
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=[username_validator],
+        verbose_name='Логин'
+    )
+    
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
-
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+    
     def __str__(self):
-        return f"{self.last_name} {self.name}"
+        return f"{self.last_name} {self.first_name} ({self.username})"
 
 
 class Bank_questions(models.Model):
@@ -39,7 +58,7 @@ class Bank_questions(models.Model):
     question_text = models.TextField()
     right_answer = models.CharField(max_length=255)
     incorrect_answers = models.TextField()
-    admin = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='questions')
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='questions')
 
     class Meta:
         verbose_name = "Вопрос"
@@ -76,7 +95,7 @@ class Testing(models.Model):
     ]
 
     id_test = models.AutoField(primary_key=True)
-    id_user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='tests')
+    id_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tests')
     questions = models.ForeignKey(Bank_questions, on_delete=models.CASCADE, related_name='tests')
     start_time = models.DateTimeField(default=timezone.now)
     types_testing = models.ForeignKey(Types, on_delete=models.CASCADE, related_name='tests')  # FK на Types
