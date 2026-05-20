@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Главная - Wrong Turn{% endblock %}
+<<<<<<< HEAD
 {% block body_class %}inner-page{% endblock %}
 {% block layout %}
 <div class="page-shell">
@@ -39,6 +40,26 @@
                 <p>Интерактивный игровой формат.</p>
                 <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600" alt="game">
             </article>
+=======
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body py-5">
+                <i class="fas fa-check-circle fa-4x" style="color: #28a745;"></i>
+                <h2 class="mt-3">Добро пожаловать, {{ user.get_full_name|default:user.username }}!</h2>
+                <p class="lead">Вы успешно авторизованы в системе.</p>
+                <hr>
+                <p>Здесь будет основной функционал сервиса (тесты, статистика и т.д.)</p>
+                
+                <div class="mt-4">
+                    <a href="{% url 'logout' %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-sign-out-alt me-2"></i>Выйти из аккаунта
+                    </a>
+                </div>
+            </div>
+>>>>>>> 2f87ceb (Add exit from profile)
         </div>
     </div>
     <footer class="footer">

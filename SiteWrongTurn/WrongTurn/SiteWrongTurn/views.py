@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from django.shortcuts import render
 
 # Create your views here.
@@ -9,12 +10,30 @@ from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
+=======
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate, logout
+>>>>>>> 2f87ceb (Add exit from profile)
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
 from .forms import RegistrationForm, LoginForm
 from .models import Bank_questions, Results_testings, Testing, Types, User
+
+
+def index(request):
+    """
+    Лендинг страница (для неавторизованных)
+    """
+    return render(request, 'index.html')
+
+
+def home(request):
+    """
+    Главная страница после авторизации
+    """
+    return render(request, 'home.html')
 
 
 @csrf_protect
@@ -36,7 +55,6 @@ def register_view(request):
             )
             return redirect('login')
         else:
-            # Вывод ошибок формы
             for field, errors in form.errors.items():
                 for error in errors:
                     if field != '__all__':
@@ -60,15 +78,8 @@ def login_view(request):
         return redirect('home')
     
     if request.method == 'POST':
-        username_or_email = request.POST.get('username')
+        username = request.POST.get('username')
         password = request.POST.get('password')
-        
-        # Попытка найти пользователя по email
-        try:
-            user_obj = User.objects.get(email=username_or_email)
-            username = user_obj.username
-        except User.DoesNotExist:
-            username = username_or_email
         
         user = authenticate(request, username=username, password=password)
         
@@ -76,21 +87,21 @@ def login_view(request):
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.get_full_name() or user.username}!')
             
-            # Обработка "Запомнить меня"
             if not request.POST.get('remember'):
                 request.session.set_expiry(0)
             
-            return redirect('home')
+            return redirect('home')  # Перенаправление на home
         else:
             messages.error(request, 'Неверный логин или пароль. Пожалуйста, проверьте введенные данные.')
     
     return render(request, 'login.html', {'next': request.GET.get('next', '')})
 
 
-def home(request):
+def logout_view(request):
     """
-    Главная страница после авторизации
+    Выход из системы
     """
+<<<<<<< HEAD
     return render(request, 'home.html')
 
 
@@ -257,3 +268,8 @@ def exam_finish_view(request):
     }
     return render(request, "exam_result.html", context)
 >>>>>>> fd98a26 (develop)
+=======
+    logout(request)
+    messages.info(request, 'Вы успешно вышли из системы.')
+    return redirect('index')  # Перенаправление на лендинг
+>>>>>>> 2f87ceb (Add exit from profile)

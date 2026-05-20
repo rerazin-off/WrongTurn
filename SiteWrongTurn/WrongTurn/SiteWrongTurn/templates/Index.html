@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Wrong Turn - Подготовка к ПДД{% endblock %}
+
+{% block content %}
+<!-- Герой секция -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="hero-title">Wrong Turn</h1>
+        <p class="hero-subtitle">Подготовка к экзамену ПДД онлайн с анализом ошибок</p>
+        {% if user.is_authenticated %}
+            <a href="#" class="btn-hero">
+                Перейти к тестам <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn-hero">
+                Начать подготовку <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Преимущества -->
+<div class="row mt-5 g-4">
+    <div class="col-md-4">
+        <div class="feature-card">
+            <i class="fas fa-database feature-icon"></i>
+            <h3 class="feature-title">Актуальные билеты</h3>
+            <p class="feature-text">Все вопросы соответствуют официальным экзаменационным билетам ГИБДД 2026 года</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <i class="fas fa-chart-line feature-icon"></i>
+            <h3 class="feature-title">Анализ прогресса</h3>
+            <p class="feature-text">Отслеживайте свои успехи и выявляйте слабые места в подготовке</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <i class="fas fa-gamepad feature-icon"></i>
+            <h3 class="feature-title">Игровые режимы</h3>
+            <p class="feature-text">4 режима обучения: Экзамен, Марафон, Игра и Обычный тест</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4 g-4">
+    <div class="col-md-4">
+        <div class="feature-card">
+            <i class="fas fa-chart-pie feature-icon"></i>
+            <h3 class="feature-title">Детальная статистика</h3>
+            <p class="feature-text">Подробные отчеты по каждой теме и разделу ПДД</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <i class="fas fa-mobile-alt feature-icon"></i>
+            <h3 class="feature-title">Доступность</h3>
+            <p class="feature-text">Занимайтесь в любое время с любого устройства</p>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

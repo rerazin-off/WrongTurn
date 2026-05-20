@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Wrong Turn{% endblock %}</title>
+<<<<<<< HEAD
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'styles/main.css' %}">
@@ -12,6 +13,239 @@
 <body class="{% block body_class %}{% endblock %}">
     {% block layout %}
     <main class="auth-layout">
+=======
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FFFFFF;
+            min-height: 100vh;
+        }
+        
+        /* Навигация */
+        .navbar {
+            background: #404B62;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #FFFFFF !important;
+            font-size: 1.5rem;
+        }
+        .navbar-nav .nav-link {
+            color: #FFFFFF !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ED5761 !important;
+        }
+        .btn-login {
+            background: transparent;
+            border: 2px solid #FFFFFF;
+            color: #FFFFFF;
+            border-radius: 25px;
+            padding: 8px 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-login:hover {
+            background: #ED5761;
+            border-color: #ED5761;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+        .btn-register {
+            background: #ED5761;
+            border: none;
+            color: #FFFFFF;
+            border-radius: 25px;
+            padding: 8px 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-register:hover {
+            background: #404B62;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+        .btn-logout {
+            background: #ED5761;
+            border: none;
+            color: #FFFFFF;
+            border-radius: 25px;
+            padding: 8px 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-logout:hover {
+            background: #161515;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+        
+        /* Герой секция */
+        .hero-section {
+            background: linear-gradient(135deg, #404B62 0%, #161515 100%);
+            color: #FFFFFF;
+            padding: 80px 0;
+            border-radius: 0 0 50px 50px;
+            margin-bottom: 50px;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .btn-hero {
+            background: #ED5761;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 35px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-hero:hover {
+            background: #FFFFFF;
+            color: #ED5761;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Карточки преимуществ */
+        .feature-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #ED5761;
+            margin-bottom: 20px;
+        }
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #404B62;
+            margin-bottom: 15px;
+        }
+        .feature-text {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Футер */
+        .footer {
+            background: #161515;
+            color: #FFFFFF;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+        .footer a {
+            color: #ED5761;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: #FFFFFF;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: #ED5761;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-primary {
+            background: #ED5761;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #404B62;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(64, 75, 98, 0.4);
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .form-control:focus {
+            border-color: #ED5761;
+            box-shadow: 0 0 0 0.2rem rgba(237, 87, 97, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'index' %}{% endif %}">
+                <i class="fas fa-car me-2"></i>Wrong Turn
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item me-2">
+                            <span class="nav-link">
+                                <i class="fas fa-user"></i> {{ user.username }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn-logout" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i> Выход
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item me-2">
+                            <a class="btn-login" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Вход
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn-register" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus me-1"></i> Регистрация
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-3">
+>>>>>>> 2f87ceb (Add exit from profile)
         {% if messages %}
             <div class="messages-box">
                 {% for message in messages %}
@@ -22,7 +256,39 @@
             </div>
         {% endif %}
         {% block content %}{% endblock %}
+<<<<<<< HEAD
     </main>
     {% endblock %}
+=======
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-car me-2"></i>Wrong Turn</h5>
+                    <p>Подготовка к экзамену ПДД онлайн с анализом ошибок</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5>Контакты</h5>
+                    <p><i class="fas fa-envelope me-2"></i> support@wrongturn.ru</p>
+                    <p><i class="fas fa-phone me-2"></i> +7 (123) 456-78-90</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5>Следите за нами</h5>
+                    <a href="#" class="me-3"><i class="fab fa-vk fa-2x"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-telegram fa-2x"></i></a>
+                    <a href="#"><i class="fab fa-youtube fa-2x"></i></a>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <small>&copy; 2026 Wrong Turn. Все права защищены.</small>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+>>>>>>> 2f87ceb (Add exit from profile)
 </body>
 </html>
