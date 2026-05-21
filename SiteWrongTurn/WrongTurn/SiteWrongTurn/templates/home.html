@@ -1,25 +1,615 @@
 {% extends 'base.html' %}
 
-{% block title %}Главная - Wrong Turn{% endblock %}
+{% block title %}Главная — Wrong Turn{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ——— Главная ——— */
+    .home-hero h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--wt-dark);
+        margin-bottom: 8px;
+    }
+
+    .home-hero p {
+        color: var(--wt-gray);
+        font-size: 1rem;
+        margin-bottom: 36px;
+    }
+
+    .mode-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+
+    .mode-card {
+        background: var(--wt-card-bg);
+        border-radius: 18px;
+        padding: 20px;
+        cursor: default;
+        transition: transform 0.2s;
+    }
+
+    .mode-card.clickable {
+        cursor: pointer;
+    }
+
+    .mode-card.clickable:hover {
+        transform: translateY(-4px);
+    }
+
+    .mode-card h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--wt-dark);
+    }
+
+    .mode-card p {
+        font-size: 0.8rem;
+        color: #555;
+        line-height: 1.45;
+        margin-bottom: 14px;
+        min-height: 72px;
+    }
+
+    .mode-card img {
+        width: 100%;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 4px solid #fff;
+    }
+
+    .mode-card .marathon-placeholder {
+        width: 100%;
+        height: 130px;
+        border-radius: 12px;
+        border: 4px solid #fff;
+        background: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #39ff14;
+        font-weight: 700;
+    }
+
+    .mode-card .marathon-placeholder span {
+        font-size: 2.5rem;
+        line-height: 1;
+    }
+
+    .mode-card .marathon-placeholder small {
+        font-size: 0.65rem;
+        color: #ccc;
+        margin-top: 4px;
+    }
+
+    /* ——— Аналитика ——— */
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: start;
+    }
+
+    .analytics-grid h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .stat-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: var(--wt-stat-bg);
+        border-radius: 14px;
+        padding: 24px 20px;
+        text-align: center;
+        color: #fff;
+    }
+
+    .stat-card .label {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+        opacity: 0.95;
+    }
+
+    .stat-card .value {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .stat-card .value.error-pct {
+        color: var(--wt-accent-bright);
+    }
+
+    .promo-text {
+        color: var(--wt-accent-bright);
+        font-weight: 600;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .history-list {
+        max-height: 420px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .history-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+        background: #bbb;
+        border-radius: 3px;
+    }
+
+    .history-item {
+        background: var(--wt-card-light);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+
+    .history-item h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .history-item p {
+        font-size: 0.9rem;
+        color: var(--wt-dark);
+        line-height: 1.6;
+    }
+
+    /* ——— Профиль ——— */
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: start;
+    }
+
+    .profile-grid h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .profile-field {
+        margin-bottom: 16px;
+    }
+
+    .profile-field input {
+        width: 100%;
+        max-width: 420px;
+        padding: 16px 20px;
+        border: none;
+        border-radius: 12px;
+        background: var(--wt-input-bg);
+        font-size: 0.95rem;
+        color: #666;
+        font-family: inherit;
+    }
+
+    .profile-field input::placeholder {
+        color: #888;
+    }
+
+    .profile-photo {
+        width: 100%;
+        max-width: 520px;
+        border-radius: 16px;
+        object-fit: cover;
+        aspect-ratio: 4/3;
+    }
+
+    /* ——— Режим экзамен (превью) ——— */
+    .exam-preview {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .exam-preview img {
+        width: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+        max-height: 380px;
+    }
+
+    .exam-preview h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .exam-preview p {
+        color: var(--wt-gray);
+        line-height: 1.6;
+        margin-bottom: 28px;
+    }
+
+    /* ——— Вопрос теста (статический референс, без логики) ——— */
+    .test-question-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: start;
+        margin-top: 20px;
+    }
+
+    .test-question-layout img {
+        width: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        max-height: 340px;
+    }
+
+    .question-num {
+        color: var(--wt-accent-bright);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .question-text {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    .answer-btn {
+        display: block;
+        width: 100%;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        text-align: left;
+        cursor: default;
+        background: var(--wt-input-bg);
+        color: var(--wt-dark-btn);
+    }
+
+    .answer-btn.selected {
+        background: var(--wt-accent-bright);
+        color: #fff;
+    }
+
+    .test-ref-note {
+        background: #fff8e6;
+        border: 1px solid #ffe08a;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        color: #856404;
+        margin-bottom: 20px;
+    }
+
+    /* ——— Результаты (превью) ——— */
+    .results-page {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .results-page h1 {
+        color: var(--wt-accent-bright);
+        font-size: 2rem;
+        margin-bottom: 16px;
+    }
+
+    .results-score {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .results-score strong {
+        color: var(--wt-accent-bright);
+    }
+
+    .results-sub {
+        color: var(--wt-gray);
+        margin-bottom: 40px;
+    }
+
+    .result-block {
+        margin-bottom: 48px;
+    }
+
+    .result-block h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .result-compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        text-align: center;
+    }
+
+    .result-compare .label {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        color: var(--wt-dark);
+    }
+
+    .result-box {
+        padding: 20px 16px;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .result-box.wrong {
+        background: var(--wt-accent-bright);
+    }
+
+    .result-box.correct {
+        background: var(--wt-dark-btn);
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 24px;
+        color: var(--wt-gray-nav);
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .back-link:hover {
+        color: var(--wt-dark);
+    }
+
+    @media (max-width: 1100px) {
+        .mode-cards { grid-template-columns: repeat(2, 1fr); }
+        .analytics-grid, .profile-grid, .exam-preview, .test-question-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+        .mode-cards { grid-template-columns: 1fr; }
+        .stat-cards { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center fade-in">
-    <div class="col-md-8 text-center">
-        <div class="card">
-            <div class="card-body py-5">
-                <i class="fas fa-check-circle fa-4x" style="color: #28a745;"></i>
-                <h2 class="mt-3">Добро пожаловать, {{ user.get_full_name|default:user.username }}!</h2>
-                <p class="lead">Вы успешно авторизованы в системе.</p>
-                <hr>
-                <p>Здесь будет основной функционал сервиса (тесты, статистика и т.д.)</p>
-                
-                <div class="mt-4">
-                    <a href="{% url 'logout' %}" class="btn btn-danger btn-lg">
-                        <i class="fas fa-sign-out-alt me-2"></i>Выйти из аккаунта
-                    </a>
+<!-- Главная -->
+<section id="page-main" class="wt-page-section active">
+    <div class="home-hero">
+        <h1>Начни прокачивать себя!</h1>
+        <p>Для начала тестирования нажмите на карточку</p>
+    </div>
+    <div class="mode-cards">
+        <article class="mode-card clickable" data-goto="exam-intro" title="Превью режима (без подключения к тестам)">
+            <h3>Экзамен</h3>
+            <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=260&fit=crop" alt="Экзамен">
+        </article>
+        <article class="mode-card">
+            <h3>Обычный</h3>
+            <p>Тренируйтесь, чтобы повышать уровень своих знаний!</p>
+            <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=260&fit=crop" alt="Обычный режим">
+        </article>
+        <article class="mode-card">
+            <h3>Марафон</h3>
+            <p>Большой забег на 400 вопросов! Самое главное добежать.</p>
+            <div class="marathon-placeholder">
+                <span>800</span>
+                <small>Марафон пройден</small>
+            </div>
+        </article>
+        <article class="mode-card">
+            <h3>Игра</h3>
+            <p>Тренируйтесь и изучайте правила в интересной игровой форме!</p>
+            <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=260&fit=crop" alt="Игра">
+        </article>
+    </div>
+</section>
+
+<!-- Аналитика -->
+<section id="page-analytics" class="wt-page-section">
+    <div class="analytics-grid">
+        <div>
+            <h2>Ваша статистика:</h2>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="label">Пройдено тестов</div>
+                    <div class="value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Процент неверных ответов</div>
+                    <div class="value error-pct">0%</div>
+                </div>
+            </div>
+            <p class="promo-text">Попробуйте наш игровой режим! Это поможет вам лучше усвоить темы в интересной вам форме!</p>
+            <button type="button" class="wt-btn-gray">Жми и играй!</button>
+        </div>
+        <div>
+            <h2>История:</h2>
+            <div class="history-list">
+                <div class="history-item">
+                    <h4>Марафон</h4>
+                    <p>Дата прохождения: 20.05.2026<br>
+                    Время начала: 9:22<br>
+                    Время окончания: 12:01<br>
+                    Количество верных ответов: 122</p>
+                </div>
+                <div class="history-item">
+                    <h4>Экзамен</h4>
+                    <p>Дата прохождения: 18.05.2026<br>
+                    Время начала: 14:10<br>
+                    Время окончания: 14:45<br>
+                    Количество верных ответов: 18</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Профиль -->
+<section id="page-profile" class="wt-page-section">
+    <div class="profile-grid">
+        <div>
+            <h2>Личная информация:</h2>
+            <div class="profile-field">
+                <input type="text" placeholder="Фамилия" value="{{ user.last_name|default:'' }}" readonly>
+            </div>
+            <div class="profile-field">
+                <input type="text" placeholder="Имя" value="{{ user.first_name|default:'' }}" readonly>
+            </div>
+            <div class="profile-field">
+                <input type="text" placeholder="Отчество" value="{{ user.patronymic|default:'' }}" readonly>
+            </div>
+            <div class="profile-field">
+                <input type="email" placeholder="Почта" value="{{ user.email|default:'' }}" readonly>
+            </div>
+            <button type="button" class="wt-btn-dark">Изменить</button>
+        </div>
+        <div>
+            <img class="profile-photo" src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=450&fit=crop" alt="Урок вождения">
+        </div>
+    </div>
+</section>
+
+<!-- Режим экзамен — превью (без функционала) -->
+<section id="page-exam-intro" class="wt-page-section">
+    <p class="test-ref-note"><i class="fas fa-info-circle"></i> Превью страницы тестирования. Модуль тестов пока не подключён к серверу.</p>
+    <div class="exam-preview">
+        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop" alt="Режим экзамен">
+        <div>
+            <h2>Режим экзамен</h2>
+            <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
+            <button type="button" class="wt-btn-dark" data-goto="test-question">Начать тестирование!</button>
+        </div>
+    </div>
+    <a class="back-link" data-goto="main">&larr; На главную</a>
+</section>
+
+<!-- Вопрос теста — статический референс (без функционала) -->
+<section id="page-test-question" class="wt-page-section">
+    <p class="test-ref-note"><i class="fas fa-palette"></i> Статическая HTML-страница по референсу. Ответы и кнопки не связаны с бэкендом.</p>
+    <div class="test-question-layout">
+        <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop" alt="Вопрос">
+        <div>
+            <div class="question-num">Вопрос №4</div>
+            <p class="question-text">Разрешено ли Вам остановиться в указанном месте?</p>
+            <button type="button" class="answer-btn selected">Запрещено</button>
+            <button type="button" class="answer-btn">Разрешено только для посадки и высадки пассажиров</button>
+            <button type="button" class="answer-btn">Разрешено</button>
+            <button type="button" class="wt-btn-dark" style="margin-top: 16px;" data-goto="test-results">Следующий вопрос</button>
+        </div>
+    </div>
+    <a class="back-link" data-goto="exam-intro">&larr; Назад</a>
+</section>
+
+<!-- Результаты — превью (без функционала) -->
+<section id="page-test-results" class="wt-page-section">
+    <p class="test-ref-note"><i class="fas fa-palette"></i> Превью страницы результатов. Данные статичны.</p>
+    <div class="results-page">
+        <h1>Поздравляем!</h1>
+        <p class="results-score">Ваш результат составил: <strong>18 из 20!</strong></p>
+        <p class="results-sub">Посмотрите в каких вопросах вы сделали ошибку:</p>
+
+        <div class="result-block">
+            <h3>Вопрос №1: Что означает мигание зелёного сигнала светофора?</h3>
+            <div class="result-compare">
+                <div>
+                    <div class="label">Вы выбрали:</div>
+                    <div class="result-box wrong">Запрещает дальнейшее движение</div>
+                </div>
+                <div>
+                    <div class="label">Правильный ответ:</div>
+                    <div class="result-box correct">Разрешает движение и информирует о том, что вскоре будет включен запрещающий сигнал</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-block">
+            <h3>Вопрос №6: Какое значение имеет сигнал свистком, подаваемый регулировщиком?</h3>
+            <div class="result-compare">
+                <div>
+                    <div class="label">Вы выбрали:</div>
+                    <div class="result-box wrong">Водитель должен немедленно остановиться</div>
+                </div>
+                <div>
+                    <div class="label">Правильный ответ:</div>
+                    <div class="result-box correct">Сигнал подаётся для привлечения внимания участников движения</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a class="back-link" data-goto="main">&larr; На главную</a>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var sections = document.querySelectorAll('.wt-page-section');
+    var navLinks = document.querySelectorAll('.wt-nav a[data-page]');
+    var profileBtn = document.getElementById('wt-profile-btn');
+
+    function showPage(pageId) {
+        sections.forEach(function(s) {
+            s.classList.toggle('active', s.id === 'page-' + pageId);
+        });
+        navLinks.forEach(function(a) {
+            var p = a.getAttribute('data-page');
+            a.classList.toggle('active', p === pageId && (p === 'main' || p === 'analytics'));
+        });
+        if (profileBtn) {
+            profileBtn.classList.toggle('active-profile', pageId === 'profile');
+        }
+        window.scrollTo(0, 0);
+    }
+
+    document.querySelectorAll('[data-goto]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage(el.getAttribute('data-goto'));
+        });
+    });
+
+    navLinks.forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage(a.getAttribute('data-page'));
+        });
+    });
+
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage('profile');
+        });
+    }
+})();
+</script>
 {% endblock %}

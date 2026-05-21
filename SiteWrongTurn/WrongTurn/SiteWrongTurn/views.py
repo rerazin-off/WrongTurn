@@ -17,7 +17,7 @@ def index(request):
     """
     Лендинг страница (для неавторизованных)
     """
-    return render(request, 'index.html')
+    return render(request, 'Index.html')
 
 
 @login_required
