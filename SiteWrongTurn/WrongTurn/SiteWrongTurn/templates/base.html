@@ -313,7 +313,10 @@
         <nav class="wt-nav" id="wt-nav">
             {% block nav_links %}
             <a href="{% url 'home' %}" class="{% block nav_home_active %}active{% endblock %}" data-page="main">Главная</a>
-            <a href="#" class="{% block nav_analytics_active %}{% endblock %}" data-page="analytics">Аналитика</a>
+            <a href="{% url 'home' %}#analytics" class="{% block nav_analytics_active %}{% endblock %}" data-page="analytics">Аналитика</a>
+            {% if user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}" class="{% block nav_tools_active %}{% endblock %}">Инструменты</a>
+            {% endif %}
             {% endblock %}
         </nav>
         {% block header_right %}

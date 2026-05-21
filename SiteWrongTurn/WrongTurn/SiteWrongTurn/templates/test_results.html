@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Результаты — Wrong Turn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-page {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .results-page h1 {
+        color: var(--wt-accent-bright);
+        font-size: 2rem;
+        margin-bottom: 16px;
+    }
+    .results-score {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+    .results-score strong {
+        color: var(--wt-accent-bright);
+    }
+    .results-sub {
+        color: var(--wt-gray);
+        margin-bottom: 40px;
+    }
+    .result-block {
+        margin-bottom: 48px;
+    }
+    .result-block h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    .result-compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        text-align: center;
+    }
+    .result-compare .label {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    .result-box {
+        padding: 20px 16px;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .result-box.wrong { background: var(--wt-accent-bright); }
+    .result-box.correct { background: var(--wt-dark-btn); }
+    .results-actions {
+        margin-top: 32px;
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    @media (max-width: 700px) {
+        .result-compare { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-page">
+    <h1>Поздравляем!</h1>
+    <p class="results-score">Ваш результат составил: <strong>{{ result.correct }} из {{ result.total }}!</strong></p>
+    {% if result.wrong_details %}
+    <p class="results-sub">Посмотрите в каких вопросах вы сделали ошибку:</p>
+    {% for item in result.wrong_details %}
+    <div class="result-block">
+        <h3>Вопрос №{{ item.number }}: {{ item.question_text }}</h3>
+        <div class="result-compare">
+            <div>
+                <div class="label">Вы выбрали:</div>
+                <div class="result-box wrong">{{ item.user_answer }}</div>
+            </div>
+            <div>
+                <div class="label">Правильный ответ:</div>
+                <div class="result-box correct">{{ item.correct_answer }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="results-sub">Все ответы верные — отличная работа!</p>
+    {% endif %}
+    <div class="results-actions">
+        <a href="{% url 'home' %}" class="wt-btn-dark">На главную</a>
+        <a href="{% url 'test_start' 'normal' %}" class="wt-btn-gray" style="text-decoration:none;">Пройти ещё раз</a>
+    </div>
+</div>
+{% endblock %}

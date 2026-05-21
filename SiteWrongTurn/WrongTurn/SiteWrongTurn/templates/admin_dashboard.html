@@ -561,13 +561,8 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Правильный ответ *</label>
-                            <select class="form-select" id="new-correct">
-                                <option value="А">А</option>
-                                <option value="Б">Б</option>
-                                <option value="В">В</option>
-                                <option value="Г">Г</option>
-                            </select>
+                            <label class="form-label">Правильный ответ (текст) *</label>
+                            <input type="text" class="form-control" id="new-correct" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Тема *</label>
@@ -639,13 +634,8 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Правильный ответ *</label>
-                            <select class="form-select" id="edit-correct">
-                                <option value="А">А</option>
-                                <option value="Б">Б</option>
-                                <option value="В">В</option>
-                                <option value="Г">Г</option>
-                            </select>
+                            <label class="form-label">Правильный ответ (текст) *</label>
+                            <input type="text" class="form-control" id="edit-correct" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Тема *</label>
@@ -672,16 +662,50 @@
 </div>
 
 <script>
-    // Данные вопросов
-    let questionsData = [
-        { id: 1, text: "Какой знак запрещает движение?", correct: "Б", topic: "Знаки", image: "", options: ["А", "Б", "В", "Г"] },
-        { id: 2, text: "Разрешенная скорость в городе?", correct: "60", topic: "Скорость", image: "", options: ["40", "60", "80", "100"] },
-        { id: 3, text: "Что означает сплошная линия разметки?", correct: "Запрещает обгон", topic: "Разметка", image: "", options: ["Разрешает обгон", "Запрещает обгон", "Разрешает остановку", "Запрещает остановку"] },
-        { id: 4, text: "Кто должен уступить дорогу на перекрестке?", correct: "Помеха справа", topic: "Перекрестки", image: "", options: ["Тот кто слева", "Помеха справа", "Главная дорога", "Встречный"] },
-        { id: 5, text: "Штраф за превышение скорости на 40 км/ч?", correct: "5000 руб", topic: "Штрафы", image: "", options: ["1000 руб", "2500 руб", "5000 руб", "Лишение прав"] }
-    ];
-
+    let questionsData = [];
     let currentEditId = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    async function apiRequest(url, method, body) {
+        const options = {
+            method: method,
+            headers: { 'X-CSRFToken': csrftoken },
+        };
+        if (body) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        }
+        const response = await fetch(url, options);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Ошибка сервера');
+        }
+        return data;
+    }
+
+    async function loadQuestionsFromServer() {
+        const data = await apiRequest('/api/questions/', 'GET');
+        questionsData = data.questions || [];
+        loadStats();
+        loadTopicsGrid();
+        loadQuestions();
+    }
 
     function previewNewImage(event) {
         const reader = new FileReader();
@@ -820,48 +844,49 @@
         }
     }
 
-    function saveEditQuestion() {
+    async function saveEditQuestion() {
         const id = currentEditId;
         const index = questionsData.findIndex(q => q.id === id);
-        
-        if (index !== -1) {
-            const newImageFile = document.getElementById('edit-question-image').files[0];
-            
-            if (newImageFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    updateQuestionData(index, e.target.result);
-                };
-                reader.readAsDataURL(newImageFile);
-            } else {
-                updateQuestionData(index, questionsData[index].image);
-            }
-        }
-    }
-    
-    function updateQuestionData(index, imageUrl) {
-        questionsData[index] = {
-            id: parseInt(document.getElementById('edit-question-id').value),
+        if (index === -1) return;
+
+        const payload = {
             text: document.getElementById('edit-question-text').value,
             correct: document.getElementById('edit-correct').value,
-            topic: document.getElementById('edit-topic').value,
-            image: imageUrl,
             options: [
                 document.getElementById('edit-option1').value,
                 document.getElementById('edit-option2').value,
                 document.getElementById('edit-option3').value,
                 document.getElementById('edit-option4').value
-            ]
+            ],
         };
-        
-        loadStats();
-        loadTopicsGrid();
-        const currentTopic = document.getElementById('topic-filter').value;
-        const currentSearch = document.getElementById('search-input').value;
-        loadQuestions(currentTopic, currentSearch);
-        
-        bootstrap.Modal.getInstance(document.getElementById('editQuestionModal')).hide();
-        alert('Вопрос успешно обновлен!');
+
+        const newImageFile = document.getElementById('edit-question-image').files[0];
+        if (newImageFile) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                payload.image = e.target.result;
+                await updateQuestionOnServer(id, payload, index);
+            };
+            reader.readAsDataURL(newImageFile);
+        } else {
+            await updateQuestionOnServer(id, payload, index);
+        }
+    }
+
+    async function updateQuestionOnServer(id, payload, index) {
+        try {
+            const data = await apiRequest(`/api/questions/${id}/edit/`, 'POST', payload);
+            questionsData[index] = data.question;
+            loadStats();
+            loadTopicsGrid();
+            const currentTopic = document.getElementById('topic-filter').value;
+            const currentSearch = document.getElementById('search-input').value;
+            loadQuestions(currentTopic, currentSearch);
+            bootstrap.Modal.getInstance(document.getElementById('editQuestionModal')).hide();
+            alert('Вопрос успешно обновлен!');
+        } catch (err) {
+            alert(err.message);
+        }
     }
 
     function addNewQuestion() {
@@ -871,47 +896,51 @@
         const option3 = document.getElementById('new-option3').value;
         const option4 = document.getElementById('new-option4').value;
         const correct = document.getElementById('new-correct').value;
-        const topic = document.getElementById('new-topic').value;
         const imageFile = document.getElementById('new-question-image').files[0];
-        
+
         if (!text || !option1 || !option2 || !option3 || !option4) {
             alert('Заполните все обязательные поля!');
             return;
         }
-        
+
+        const payload = {
+            text: text,
+            correct: correct,
+            options: [option1, option2, option3, option4],
+        };
+
         if (imageFile) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                saveNewQuestion(text, correct, topic, e.target.result, [option1, option2, option3, option4]);
+            reader.onload = async function(e) {
+                payload.image = e.target.result;
+                await saveNewQuestionOnServer(payload);
             };
             reader.readAsDataURL(imageFile);
         } else {
-            saveNewQuestion(text, correct, topic, '', [option1, option2, option3, option4]);
+            saveNewQuestionOnServer(payload);
         }
     }
-    
-    function saveNewQuestion(text, correct, topic, imageUrl, options) {
-        questionsData.push({
-            id: questionsData.length + 1,
-            text: text,
-            correct: correct,
-            topic: topic,
-            image: imageUrl,
-            options: options
-        });
-        
-        loadStats();
-        loadTopicsGrid();
-        const currentTopic = document.getElementById('topic-filter').value;
-        const currentSearch = document.getElementById('search-input').value;
-        loadQuestions(currentTopic, currentSearch);
-        
-        bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
-        alert('Вопрос успешно добавлен!');
+
+    async function saveNewQuestionOnServer(payload) {
+        try {
+            const data = await apiRequest('/api/questions/add/', 'POST', payload);
+            questionsData.push(data.question);
+            loadStats();
+            loadTopicsGrid();
+            const currentTopic = document.getElementById('topic-filter').value;
+            const currentSearch = document.getElementById('search-input').value;
+            loadQuestions(currentTopic, currentSearch);
+            bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
+            alert('Вопрос успешно добавлен!');
+        } catch (err) {
+            alert(err.message);
+        }
     }
 
-    function deleteQuestion(id) {
-        if (confirm('Вы уверены, что хотите удалить этот вопрос?')) {
+    async function deleteQuestion(id) {
+        if (!confirm('Вы уверены, что хотите удалить этот вопрос?')) return;
+        try {
+            await apiRequest(`/api/questions/${id}/delete/`, 'POST', {});
             questionsData = questionsData.filter(q => q.id !== id);
             loadStats();
             loadTopicsGrid();
@@ -919,6 +948,8 @@
             const currentSearch = document.getElementById('search-input').value;
             loadQuestions(currentTopic, currentSearch);
             alert('Вопрос удален!');
+        } catch (err) {
+            alert(err.message);
         }
     }
 
@@ -981,26 +1012,26 @@
             previewHtml += '</tbody></table>';
             document.getElementById('preview-content').innerHTML = previewHtml;
             
-            parsed.forEach((q) => {
-                questionsData.push({
-                    id: questionsData.length + 1,
+            const uploadPayload = {
+                questions: parsed.map(q => ({
                     text: q.text,
                     correct: q.correct,
                     topic: q.topic,
                     image: q.image || '',
-                    options: [q.option1, q.option2, q.option3, q.option4]
-                });
-            });
-            
-            document.getElementById('upload-result').innerHTML = `
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> Успешно загружено ${parsed.length} вопросов!
-                </div>
-            `;
-            
-            loadStats();
-            loadTopicsGrid();
-            loadQuestions();
+                    options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
+                })),
+            };
+
+            apiRequest('/api/questions/upload-json/', 'POST', uploadPayload)
+                .then((data) => {
+                    document.getElementById('upload-result').innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Успешно загружено ${data.created} вопросов!
+                        </div>
+                    `;
+                    return loadQuestionsFromServer();
+                })
+                .catch((err) => alert(err.message));
         };
         reader.readAsText(file, 'UTF-8');
     });
@@ -1038,8 +1069,9 @@
         loadQuestions(currentTopic, e.target.value);
     });
     
-    loadStats();
-    loadTopicsGrid();
-    loadQuestions();
+    loadQuestionsFromServer().catch((err) => {
+        console.error(err);
+        alert('Не удалось загрузить вопросы с сервера: ' + err.message);
+    });
 </script>
 {% endblock %}

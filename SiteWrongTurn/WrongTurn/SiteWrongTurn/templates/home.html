@@ -216,6 +216,32 @@
         aspect-ratio: 4/3;
     }
 
+    .profile-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    .wt-btn-logout {
+        display: inline-block;
+        padding: 12px 28px;
+        background: transparent;
+        color: var(--wt-accent-bright);
+        border: 2px solid var(--wt-accent-bright);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .wt-btn-logout:hover {
+        background: var(--wt-accent-bright);
+        color: #fff;
+    }
+
     /* ——— Режим экзамен (превью) ——— */
     .exam-preview {
         display: grid;
@@ -407,16 +433,16 @@
         <p>Для начала тестирования нажмите на карточку</p>
     </div>
     <div class="mode-cards">
-        <article class="mode-card clickable" data-goto="exam-intro" title="Превью режима (без подключения к тестам)">
+        <a href="{% url 'test_intro' 'exam' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Экзамен</h3>
             <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
             <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=260&fit=crop" alt="Экзамен">
-        </article>
-        <article class="mode-card">
+        </a>
+        <a href="{% url 'test_intro' 'normal' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Обычный</h3>
             <p>Тренируйтесь, чтобы повышать уровень своих знаний!</p>
             <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=260&fit=crop" alt="Обычный режим">
-        </article>
+        </a>
         <article class="mode-card">
             <h3>Марафон</h3>
             <p>Большой забег на 400 вопросов! Самое главное добежать.</p>
@@ -441,11 +467,11 @@
             <div class="stat-cards">
                 <div class="stat-card">
                     <div class="label">Пройдено тестов</div>
-                    <div class="value">0</div>
+                    <div class="value">{{ tests_completed }}</div>
                 </div>
                 <div class="stat-card">
                     <div class="label">Процент неверных ответов</div>
-                    <div class="value error-pct">0%</div>
+                    <div class="value error-pct">{{ error_percent }}%</div>
                 </div>
             </div>
             <p class="promo-text">Попробуйте наш игровой режим! Это поможет вам лучше усвоить темы в интересной вам форме!</p>
@@ -454,20 +480,19 @@
         <div>
             <h2>История:</h2>
             <div class="history-list">
+                {% for item in history %}
                 <div class="history-item">
-                    <h4>Марафон</h4>
-                    <p>Дата прохождения: 20.05.2026<br>
-                    Время начала: 9:22<br>
-                    Время окончания: 12:01<br>
-                    Количество верных ответов: 122</p>
+                    <h4>{{ item.type_name }}</h4>
+                    <p>Дата прохождения: {{ item.date }}<br>
+                    Время начала: {{ item.start_time }}<br>
+                    Время окончания: {{ item.end_time }}<br>
+                    Количество верных ответов: {{ item.correct_count }}</p>
                 </div>
+                {% empty %}
                 <div class="history-item">
-                    <h4>Экзамен</h4>
-                    <p>Дата прохождения: 18.05.2026<br>
-                    Время начала: 14:10<br>
-                    Время окончания: 14:45<br>
-                    Количество верных ответов: 18</p>
+                    <p>История пуста. Пройдите первый тест в режиме «Обычный».</p>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -490,7 +515,10 @@
             <div class="profile-field">
                 <input type="email" placeholder="Почта" value="{{ user.email|default:'' }}" readonly>
             </div>
-            <button type="button" class="wt-btn-dark">Изменить</button>
+            <div class="profile-actions">
+                <button type="button" class="wt-btn-dark">Изменить</button>
+                <a href="{% url 'logout' %}" class="wt-btn-logout">Выйти</a>
+            </div>
         </div>
         <div>
             <img class="profile-photo" src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=450&fit=crop" alt="Урок вождения">
@@ -498,75 +526,6 @@
     </div>
 </section>
 
-<!-- Режим экзамен — превью (без функционала) -->
-<section id="page-exam-intro" class="wt-page-section">
-    <p class="test-ref-note"><i class="fas fa-info-circle"></i> Превью страницы тестирования. Модуль тестов пока не подключён к серверу.</p>
-    <div class="exam-preview">
-        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop" alt="Режим экзамен">
-        <div>
-            <h2>Режим экзамен</h2>
-            <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
-            <button type="button" class="wt-btn-dark" data-goto="test-question">Начать тестирование!</button>
-        </div>
-    </div>
-    <a class="back-link" data-goto="main">&larr; На главную</a>
-</section>
-
-<!-- Вопрос теста — статический референс (без функционала) -->
-<section id="page-test-question" class="wt-page-section">
-    <p class="test-ref-note"><i class="fas fa-palette"></i> Статическая HTML-страница по референсу. Ответы и кнопки не связаны с бэкендом.</p>
-    <div class="test-question-layout">
-        <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop" alt="Вопрос">
-        <div>
-            <div class="question-num">Вопрос №4</div>
-            <p class="question-text">Разрешено ли Вам остановиться в указанном месте?</p>
-            <button type="button" class="answer-btn selected">Запрещено</button>
-            <button type="button" class="answer-btn">Разрешено только для посадки и высадки пассажиров</button>
-            <button type="button" class="answer-btn">Разрешено</button>
-            <button type="button" class="wt-btn-dark" style="margin-top: 16px;" data-goto="test-results">Следующий вопрос</button>
-        </div>
-    </div>
-    <a class="back-link" data-goto="exam-intro">&larr; Назад</a>
-</section>
-
-<!-- Результаты — превью (без функционала) -->
-<section id="page-test-results" class="wt-page-section">
-    <p class="test-ref-note"><i class="fas fa-palette"></i> Превью страницы результатов. Данные статичны.</p>
-    <div class="results-page">
-        <h1>Поздравляем!</h1>
-        <p class="results-score">Ваш результат составил: <strong>18 из 20!</strong></p>
-        <p class="results-sub">Посмотрите в каких вопросах вы сделали ошибку:</p>
-
-        <div class="result-block">
-            <h3>Вопрос №1: Что означает мигание зелёного сигнала светофора?</h3>
-            <div class="result-compare">
-                <div>
-                    <div class="label">Вы выбрали:</div>
-                    <div class="result-box wrong">Запрещает дальнейшее движение</div>
-                </div>
-                <div>
-                    <div class="label">Правильный ответ:</div>
-                    <div class="result-box correct">Разрешает движение и информирует о том, что вскоре будет включен запрещающий сигнал</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="result-block">
-            <h3>Вопрос №6: Какое значение имеет сигнал свистком, подаваемый регулировщиком?</h3>
-            <div class="result-compare">
-                <div>
-                    <div class="label">Вы выбрали:</div>
-                    <div class="result-box wrong">Водитель должен немедленно остановиться</div>
-                </div>
-                <div>
-                    <div class="label">Правильный ответ:</div>
-                    <div class="result-box correct">Сигнал подаётся для привлечения внимания участников движения</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <a class="back-link" data-goto="main">&larr; На главную</a>
-</section>
 {% endblock %}
 
 {% block extra_js %}
@@ -609,6 +568,10 @@
             e.preventDefault();
             showPage('profile');
         });
+    }
+
+    if (window.location.hash === '#analytics') {
+        showPage('analytics');
     }
 })();
 </script>
