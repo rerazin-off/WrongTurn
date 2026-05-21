@@ -1,27 +1,95 @@
 {% extends 'base.html' %}
 
 {% block title %}Регистрация - Wrong Turn{% endblock %}
-{% block body_class %}auth-page{% endblock %}
 
 {% block content %}
-<div>
-    <h1 class="brand-title">Wrong Turn</h1>
-    <div class="auth-card">
-        <h3>Регистрация</h3>
-        <form method="post" action="{% url 'register' %}">
-            {% csrf_token %}
-            <input type="text" class="form-input" id="last_name" name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="*Фамилия" required>
-            <input type="text" class="form-input" id="first_name" name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="*Имя" required>
-            <input type="text" class="form-input" id="patronymic" name="patronymic" value="{{ form.patronymic.value|default:'' }}" placeholder="Отчество">
-            <input type="email" class="form-input" id="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Почта" required>
-            <input type="text" class="form-input" id="username" name="username" value="{{ form.username.value|default:'' }}" placeholder="*Логин" required>
-            <input type="password" class="form-input" id="password1" name="password1" placeholder="*Пароль" required>
-            <input type="password" class="form-input" id="password2" name="password2" placeholder="*Введите еще раз пароль" required>
-            <div class="text-center mb-2">
-                <button type="submit" class="btn-dark-main">Войти</button>
+<div class="row justify-content-center fade-in">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <i class="fas fa-user-plus fa-2x mb-2"></i>
+                <h3 class="mb-0">Регистрация</h3>
+                <p class="mb-0 mt-2">Создайте аккаунт для подготовки к экзамену ПДД</p>
             </div>
-        </form>
-        <p class="auth-hint">Уже есть аккаунт? <a href="{% url 'login' %}">Заходи!</a></p>
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="last_name" class="form-label">Фамилия *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ form.last_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="first_name" class="form-label">Имя *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ form.first_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="patronymic" class="form-label">Отчество</label>
+                            <input type="text" class="form-control" id="patronymic" name="patronymic" 
+                                   value="{{ form.patronymic.value|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Логин *</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="{{ form.username.value|default:'' }}" required>
+                        <small class="text-muted">Только латиница, цифры и символы . - _</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ form.email.value|default:'' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="birthday" class="form-label">Дата рождения</label>
+                        <input type="date" class="form-control" id="birthday" name="birthday" 
+                               value="{{ form.birthday.value|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password1" class="form-label">Пароль *</label>
+                        <input type="password" class="form-control" id="password1" name="password1" required>
+                        <small class="text-muted">
+                            Минимум 8 символов: заглавные, строчные буквы, цифры, спецсимволы
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password2" class="form-label">Подтверждение пароля *</label>
+                        <input type="password" class="form-control" id="password2" name="password2" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        Уже есть аккаунт? 
+                        <a href="{% url 'login' %}" class="text-decoration-none">Войти</a>
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        var password1 = document.getElementById('password1').value;
+        var password2 = document.getElementById('password2').value;
+        
+        if (password1 !== password2) {
+            e.preventDefault();
+            alert('Пароли не совпадают!');
+        }
+    });
+</script>
 {% endblock %}
