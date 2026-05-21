@@ -4,172 +4,321 @@
 
 {% block extra_css %}
 <style>
-    .admin-sidebar {
-        background: #404B62;
-        border-radius: 15px;
-        padding: 20px;
-        height: 100%;
-        min-height: 500px;
+.admin-sidebar {
+    background: #404B62;
+    border-radius: 15px;
+    padding: 20px;
+    height: 100%;
+    min-height: 500px;
+}
+.admin-sidebar .nav-link {
+    color: #FFFFFF;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+}
+.admin-sidebar .nav-link:hover {
+    background: #ED5761;
+    transform: translateX(5px);
+}
+.admin-sidebar .nav-link.active {
+    background: #ED5761;
+}
+.admin-sidebar .nav-link i {
+    margin-right: 10px;
+    width: 25px;
+}
+.admin-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+}
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ED5761;
+}
+.btn-upload {
+    background: #ED5761;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+.btn-upload:hover {
+    background: #404B62;
+    transform: translateY(-2px);
+}
+.topic-badge {
+    background: #404B62;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin: 3px;
+}
+.table-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.btn-edit {
+    background: #404B62;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.btn-delete {
+    background: #ED5761;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.btn-edit:hover, .btn-delete:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+.json-preview {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    max-height: 400px;
+    overflow: auto;
+}
+.question-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.image-preview {
+    max-width: 150px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+.image-upload-area {
+    border: 2px dashed #ED5761;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.image-upload-area:hover {
+    background: #f8f9fa;
+    border-color: #404B62;
+}
+
+/* ========== КРАСИВЫЕ БЛОКИ ТЕМ ПДД (стиль как на главной) ========== */
+.topics-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.topic-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+    border-radius: 20px;
+    padding: 30px 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #ED5761, #404B62);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.topic-card:hover::before {
+    transform: scaleX(1);
+}
+
+.topic-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 40px rgba(0,0,0,0.15);
+}
+
+.topic-icon {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.topic-card:hover .topic-icon {
+    transform: scale(1.1);
+}
+
+.topic-card h4 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.topic-card p {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.topic-stats {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.topic-count {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #ED5761;
+}
+
+.topic-label {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.topic-progress {
+    background: #e9ecef;
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.topic-progress-bar {
+    background: linear-gradient(90deg, #ED5761, #404B62);
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+.topic-hint {
+    font-size: 0.7rem;
+    color: #bdc3c7;
+    transition: color 0.3s ease;
+}
+
+.topic-card:hover .topic-hint {
+    color: #ED5761;
+}
+
+/* Анимация появления карточек */
+.topic-card {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+.topic-card:nth-child(1) { animation-delay: 0.05s; }
+.topic-card:nth-child(2) { animation-delay: 0.1s; }
+.topic-card:nth-child(3) { animation-delay: 0.15s; }
+.topic-card:nth-child(4) { animation-delay: 0.2s; }
+.topic-card:nth-child(5) { animation-delay: 0.25s; }
+.topic-card:nth-child(6) { animation-delay: 0.3s; }
+.topic-card:nth-child(7) { animation-delay: 0.35s; }
+.topic-card:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
     }
-    .admin-sidebar .nav-link {
-        color: #FFFFFF;
-        padding: 12px 20px;
-        border-radius: 10px;
-        margin-bottom: 5px;
-        transition: all 0.3s ease;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-    .admin-sidebar .nav-link:hover {
-        background: #ED5761;
-        transform: translateX(5px);
+}
+
+/* Модальное окно - изображения */
+.modal-image-container {
+    max-width: 200px;
+    max-height: 150px;
+    overflow: hidden;
+    border-radius: 10px;
+    margin: 10px 0;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-image-container img {
+    width: 100%;
+    height: auto;
+    max-height: 150px;
+    object-fit: contain;
+}
+
+/* Адаптивная таблица с вопросами */
+.questions-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+.questions-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+}
+.questions-table th,
+.questions-table td {
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+.questions-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #404B62;
+}
+.question-text-cell {
+    max-width: 300px;
+    word-wrap: break-word;
+}
+.image-cell {
+    width: 70px;
+    text-align: center;
+}
+.actions-cell {
+    white-space: nowrap;
+    width: 100px;
+}
+
+@media (max-width: 768px) {
+    .question-text-cell {
+        max-width: 180px;
     }
-    .admin-sidebar .nav-link.active {
-        background: #ED5761;
+    .topics-container {
+        grid-template-columns: 1fr !important;
     }
-    .admin-sidebar .nav-link i {
-        margin-right: 10px;
-        width: 25px;
-    }
-    .admin-card {
-        background: #FFFFFF;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        border: 1px solid #eee;
-    }
-    .admin-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    .stat-number {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #ED5761;
-    }
-    .btn-upload {
-        background: #ED5761;
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 25px;
-        transition: all 0.3s ease;
-    }
-    .btn-upload:hover {
-        background: #404B62;
-        transform: translateY(-2px);
-    }
-    .topic-badge {
-        background: #404B62;
-        color: white;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        display: inline-block;
-        margin: 3px;
-    }
-    .topic-badge:hover {
-        background: #ED5761;
-    }
-    .table-actions {
-        display: flex;
-        gap: 10px;
-    }
-    .btn-edit {
-        background: #404B62;
-        color: white;
-        border: none;
-        padding: 5px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .btn-delete {
-        background: #ED5761;
-        color: white;
-        border: none;
-        padding: 5px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .btn-edit:hover, .btn-delete:hover {
-        opacity: 0.8;
-        transform: scale(1.05);
-    }
-    .csv-preview {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-top: 15px;
-        max-height: 400px;
-        overflow: auto;
-    }
-    .question-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        object-fit: cover;
-    }
-    .image-preview {
-        max-width: 150px;
-        border-radius: 10px;
-        margin-top: 10px;
-    }
-    .image-upload-area {
-        border: 2px dashed #ED5761;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    .image-upload-area:hover {
-        background: #f8f9fa;
-        border-color: #404B62;
-    }
-    .current-image {
-        max-width: 100px;
-        max-height: 80px;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-    .topic-card {
-        background: #FFFFFF;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 1px solid #eee;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-    .topic-card:hover {
-        transform: translateY(-5px);
-        background: #404B62;
-        color: white;
-    }
-    .topic-card i {
-        font-size: 2rem;
-        color: #ED5761;
-        margin-bottom: 10px;
-    }
-    .topic-card:hover i {
-        color: white;
-    }
-    .topic-count {
-        font-size: 1.5rem;
-        font-weight: bold;
-        display: block;
-        color: #ED5761;
-    }
-    .topic-card:hover .topic-count {
-        color: white;
-    }
-    .table img {
-        max-width: 50px;
-        max-height: 50px;
-    }
-    .search-box {
-        margin-bottom: 20px;
-    }
+}
 </style>
 {% endblock %}
 
@@ -187,7 +336,7 @@
                         <i class="fas fa-tachometer-alt"></i> Главная
                     </a>
                     <a class="nav-link" href="#" data-page="upload">
-                        <i class="fas fa-upload"></i> Загрузка CSV
+                        <i class="fas fa-upload"></i> Загрузка JSON
                     </a>
                     <a class="nav-link" href="#" data-page="questions">
                         <i class="fas fa-question-circle"></i> Все вопросы
@@ -197,7 +346,7 @@
                     </a>
                 </nav>
                 <hr class="bg-light">
-                <a href="{% url 'index' %}" class="nav-link">
+                <a href="/" class="nav-link">
                     <i class="fas fa-arrow-left"></i> На сайт
                 </a>
             </div>
@@ -241,52 +390,53 @@
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle"></i> <strong>Быстрые действия:</strong>
                                 <ul class="mt-2">
-                                    <li>Загрузите CSV файл с вопросами (поддержка картинок)</li>
+                                    <li>Загрузите JSON файл с вопросами</li>
                                     <li>Добавьте новый вопрос вручную с изображением</li>
                                     <li>Отредактируйте существующие вопросы</li>
-                                    <li>Управляйте темами</li>
+                                    <li>Просматривайте статистику по темам</li>
                                 </ul>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i> <strong>Пример CSV формата:</strong>
+                                <i class="fas fa-exclamation-triangle"></i> <strong>Пример JSON формата:</strong>
                                 <pre class="mt-2 small" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 11px;">
-вопрос,вариант1,вариант2,вариант3,вариант4,правильный,тема
-"Какой знак изображен?","А","Б","В","Г","Б","Знаки"
-"Разрешенная скорость?","40","60","80","100","60","Скорость"</pre>
+{
+  "questions": [
+    {
+      "text": "Какой знак запрещает движение?",
+      "options": ["А", "Б", "В", "Г"],
+      "correct": "Б",
+      "topic": "Знаки",
+      "image": ""
+    }
+  ]
+}</pre>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Страница 2: Загрузка CSV -->
+            <!-- Страница 2: Загрузка JSON -->
             <div id="upload-content" class="content-page" style="display: none;">
                 <div class="admin-card">
-                    <h3><i class="fas fa-upload me-2"></i>Загрузка вопросов из CSV</h3>
-                    <p class="text-muted">Загрузите CSV файл для массового добавления вопросов</p>
+                    <h3><i class="fas fa-upload me-2"></i>Загрузка вопросов из JSON</h3>
+                    <p class="text-muted">Загрузите JSON файл для массового добавления вопросов</p>
                     
-                    <form id="csv-upload-form" enctype="multipart/form-data">
+                    <form id="json-upload-form" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label class="form-label">Выберите CSV файл</label>
-                            <input type="file" class="form-control" id="csv-file" accept=".csv" required>
-                            <small class="text-muted">Поддерживается кодировка UTF-8, разделитель - запятая или точка с запятой</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Разделитель</label>
-                            <select class="form-select" id="csv-delimiter">
-                                <option value=",">Запятая (,)</option>
-                                <option value=";">Точка с запятой (;)</option>
-                            </select>
+                            <label class="form-label">Выберите JSON файл</label>
+                            <input type="file" class="form-control" id="json-file" accept=".json" required>
+                            <small class="text-muted">Поддерживается кодировка UTF-8</small>
                         </div>
                         <button type="submit" class="btn-upload">
                             <i class="fas fa-cloud-upload-alt"></i> Загрузить и парсить
                         </button>
                     </form>
                     
-                    <div id="csv-preview" class="csv-preview" style="display: none;">
+                    <div id="json-preview" class="json-preview" style="display: none;">
                         <h5><i class="fas fa-eye"></i> Предпросмотр</h5>
                         <div id="preview-content"></div>
                     </div>
@@ -305,7 +455,6 @@
                         </button>
                     </div>
                     
-                    <!-- Фильтр и поиск -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>Фильтр по теме:</label>
@@ -327,8 +476,8 @@
                         </div>
                     </div>
                     
-                    <div id="questions-list" class="table-responsive">
-                        <table class="table table-hover">
+                    <div class="questions-table-wrapper">
+                        <table class="questions-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -339,9 +488,7 @@
                                     <th>Действия</th>
                                 </tr>
                             </thead>
-                            <tbody id="questions-tbody">
-                                <!-- Вопросы будут загружены через JS -->
-                            </tbody>
+                            <tbody id="questions-tbody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -351,66 +498,9 @@
             <div id="topics-content" class="content-page" style="display: none;">
                 <div class="admin-card">
                     <h3><i class="fas fa-folder me-2"></i>Темы ПДД</h3>
-                    <p class="text-muted">Вопросы распределены по тематическим разделам</p>
+                    <p class="text-muted">Вопросы распределены по тематическим разделам. Нажмите на тему для фильтрации вопросов.</p>
                     
-                    <div class="row" id="topics-grid">
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Знаки" onclick="filterByTopic('Знаки')">
-                                <i class="fas fa-traffic-light"></i>
-                                <h5>Дорожные знаки</h5>
-                                <span class="topic-count" id="count-Знаки">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Разметка" onclick="filterByTopic('Разметка')">
-                                <i class="fas fa-road"></i>
-                                <h5>Дорожная разметка</h5>
-                                <span class="topic-count" id="count-Разметка">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Перекрестки" onclick="filterByTopic('Перекрестки')">
-                                <i class="fas fa-exchange-alt"></i>
-                                <h5>Перекрестки</h5>
-                                <span class="topic-count" id="count-Перекрестки">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Скорость" onclick="filterByTopic('Скорость')">
-                                <i class="fas fa-tachometer-alt"></i>
-                                <h5>Скоростной режим</h5>
-                                <span class="topic-count" id="count-Скорость">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Расположение" onclick="filterByTopic('Расположение')">
-                                <i class="fas fa-car"></i>
-                                <h5>Расположение ТС</h5>
-                                <span class="topic-count" id="count-Расположение">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Штрафы" onclick="filterByTopic('Штрафы')">
-                                <i class="fas fa-gavel"></i>
-                                <h5>Штрафы</h5>
-                                <span class="topic-count" id="count-Штрафы">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Дистанция" onclick="filterByTopic('Дистанция')">
-                                <i class="fas fa-ruler-combined"></i>
-                                <h5>Безопасная дистанция</h5>
-                                <span class="topic-count" id="count-Дистанция">0</span> вопросов
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="topic-card" data-topic="Прочее" onclick="filterByTopic('Прочее')">
-                                <i class="fas fa-ellipsis-h"></i>
-                                <h5>Прочее</h5>
-                                <span class="topic-count" id="count-Прочее">0</span> вопросов
-                            </div>
-                        </div>
-                    </div>
+                    <div class="topics-container" id="topics-grid"></div>
                 </div>
             </div>
         </div>
@@ -509,7 +599,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Текущее изображение</label>
-                        <img id="current-image" class="current-image" style="display: none;">
+                        <div id="current-image-container" class="modal-image-container"></div>
                         <label class="form-label mt-2">Заменить изображение</label>
                         <div class="image-upload-area" onclick="document.getElementById('edit-question-image').click()">
                             <i class="fas fa-cloud-upload-alt fa-2x" style="color: #ED5761;"></i>
@@ -582,47 +672,82 @@
 
     let currentEditId = null;
 
-    // Предпросмотр изображения при добавлении
     function previewNewImage(event) {
         const reader = new FileReader();
         reader.onload = function() {
             const preview = document.getElementById('new-image-preview');
             preview.src = reader.result;
             preview.style.display = 'block';
+            preview.style.maxWidth = '200px';
+            preview.style.maxHeight = '150px';
+            preview.style.objectFit = 'contain';
         }
         if (event.target.files[0]) {
             reader.readAsDataURL(event.target.files[0]);
         }
     }
 
-    // Предпросмотр изображения при редактировании
     function previewEditImage(event) {
         const reader = new FileReader();
         reader.onload = function() {
             const preview = document.getElementById('edit-image-preview');
             preview.src = reader.result;
             preview.style.display = 'block';
+            preview.style.maxWidth = '200px';
+            preview.style.maxHeight = '150px';
+            preview.style.objectFit = 'contain';
         }
         if (event.target.files[0]) {
             reader.readAsDataURL(event.target.files[0]);
         }
     }
 
-    // Загрузка статистики
     function loadStats() {
         document.getElementById('total-questions').innerText = questionsData.length;
         const imagesCount = questionsData.filter(q => q.image && q.image !== '').length;
         document.getElementById('total-images').innerText = imagesCount;
-        
-        const topics = ['Знаки', 'Разметка', 'Перекрестки', 'Скорость', 'Расположение', 'Штрафы', 'Дистанция', 'Прочее'];
-        topics.forEach(topic => {
-            let count = questionsData.filter(q => q.topic === topic).length;
-            let elem = document.getElementById(`count-${topic}`);
-            if (elem) elem.innerText = count;
-        });
     }
 
-    // Загрузка списка вопросов
+    function loadTopicsGrid() {
+        const topics = [
+            { name: 'Дорожные знаки', key: 'Знаки', icon: 'fa-traffic-light', desc: 'Все знаки дорожного движения и их значения', color: '#ED5761' },
+            { name: 'Дорожная разметка', key: 'Разметка', icon: 'fa-road', desc: 'Горизонтальная и вертикальная разметка', color: '#404B62' },
+            { name: 'Перекрестки', key: 'Перекрестки', icon: 'fa-exchange-alt', desc: 'Правила проезда перекрестков', color: '#ED5761' },
+            { name: 'Скоростной режим', key: 'Скорость', icon: 'fa-tachometer-alt', desc: 'Ограничения скорости движения', color: '#404B62' },
+            { name: 'Расположение ТС', key: 'Расположение', icon: 'fa-car', desc: 'Правила расположения на дороге', color: '#ED5761' },
+            { name: 'Штрафы', key: 'Штрафы', icon: 'fa-gavel', desc: 'Штрафы за нарушения ПДД', color: '#404B62' },
+            { name: 'Безопасная дистанция', key: 'Дистанция', icon: 'fa-ruler-combined', desc: 'Дистанция и интервалы движения', color: '#ED5761' },
+            { name: 'Прочее', key: 'Прочее', icon: 'fa-ellipsis-h', desc: 'Остальные разделы ПДД', color: '#404B62' }
+        ];
+        
+        const maxQuestions = Math.max(...topics.map(t => questionsData.filter(q => q.topic === t.key).length), 1);
+        
+        let html = '';
+        for (let topic of topics) {
+            const count = questionsData.filter(q => q.topic === topic.key).length;
+            const percentage = (count / maxQuestions) * 100;
+            
+            html += `
+                <div class="topic-card" onclick="filterByTopic('${topic.key}')">
+                    <i class="fas ${topic.icon} topic-icon" style="color: ${topic.color};"></i>
+                    <h4>${topic.name}</h4>
+                    <p>${topic.desc}</p>
+                    <div class="topic-stats">
+                        <span class="topic-count">${count}</span>
+                        <span class="topic-label">вопросов</span>
+                    </div>
+                    <div class="topic-progress">
+                        <div class="topic-progress-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                    <div class="topic-hint">
+                        <i class="fas fa-mouse-pointer"></i> Нажмите для фильтрации
+                    </div>
+                </div>
+            `;
+        }
+        document.getElementById('topics-grid').innerHTML = html;
+    }
+
     function loadQuestions(filterTopic = 'all', searchTerm = '') {
         let filtered = questionsData;
         if (filterTopic !== 'all') {
@@ -638,11 +763,11 @@
             html += `
                 <tr>
                     <td>${q.id}</td>
-                    <td style="max-width: 300px;">${q.text}</td>
-                    <td class="text-center">${imageHtml}</td>
+                    <td class="question-text-cell">${q.text}</td>
+                    <td class="image-cell">${imageHtml}</td>
                     <td><span class="topic-badge">${q.correct}</span></td>
                     <td><span class="topic-badge">${q.topic}</span></td>
-                    <td class="table-actions">
+                    <td class="actions-cell">
                         <button class="btn-edit" onclick="openEditModal(${q.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn-delete" onclick="deleteQuestion(${q.id})"><i class="fas fa-trash"></i></button>
                     </td>
@@ -652,14 +777,12 @@
         document.getElementById('questions-tbody').innerHTML = html;
     }
 
-    // Открыть модальное окно добавления
     function openAddModal() {
         document.getElementById('add-question-form').reset();
         document.getElementById('new-image-preview').style.display = 'none';
         new bootstrap.Modal(document.getElementById('addQuestionModal')).show();
     }
 
-    // Открыть модальное окно редактирования
     function openEditModal(id) {
         const question = questionsData.find(q => q.id === id);
         if (question) {
@@ -673,12 +796,11 @@
             document.getElementById('edit-correct').value = question.correct;
             document.getElementById('edit-topic').value = question.topic;
             
-            const currentImg = document.getElementById('current-image');
-            if (question.image) {
-                currentImg.src = question.image;
-                currentImg.style.display = 'block';
+            const container = document.getElementById('current-image-container');
+            if (question.image && question.image !== '') {
+                container.innerHTML = `<img src="${question.image}" alt="текущее изображение" style="max-width:100%; max-height:100px; object-fit:contain;">`;
             } else {
-                currentImg.style.display = 'none';
+                container.innerHTML = '<p class="text-muted">Нет изображения</p>';
             }
             document.getElementById('edit-image-preview').style.display = 'none';
             document.getElementById('edit-question-image').value = '';
@@ -687,7 +809,6 @@
         }
     }
 
-    // Сохранить изменения вопроса
     function saveEditQuestion() {
         const id = currentEditId;
         const index = questionsData.findIndex(q => q.id === id);
@@ -723,6 +844,7 @@
         };
         
         loadStats();
+        loadTopicsGrid();
         const currentTopic = document.getElementById('topic-filter').value;
         const currentSearch = document.getElementById('search-input').value;
         loadQuestions(currentTopic, currentSearch);
@@ -731,7 +853,6 @@
         alert('Вопрос успешно обновлен!');
     }
 
-    // Добавление нового вопроса
     function addNewQuestion() {
         const text = document.getElementById('new-question-text').value;
         const option1 = document.getElementById('new-option1').value;
@@ -769,6 +890,7 @@
         });
         
         loadStats();
+        loadTopicsGrid();
         const currentTopic = document.getElementById('topic-filter').value;
         const currentSearch = document.getElementById('search-input').value;
         loadQuestions(currentTopic, currentSearch);
@@ -777,11 +899,11 @@
         alert('Вопрос успешно добавлен!');
     }
 
-    // Удаление вопроса
     function deleteQuestion(id) {
-        if (confirm('Вы уверены, что хотите удалить этот вопрос? Это действие нельзя отменить.')) {
+        if (confirm('Вы уверены, что хотите удалить этот вопрос?')) {
             questionsData = questionsData.filter(q => q.id !== id);
             loadStats();
+            loadTopicsGrid();
             const currentTopic = document.getElementById('topic-filter').value;
             const currentSearch = document.getElementById('search-input').value;
             loadQuestions(currentTopic, currentSearch);
@@ -789,7 +911,6 @@
         }
     }
 
-    // Фильтрация по теме из карточек
     function filterByTopic(topic) {
         document.getElementById('topic-filter').value = topic;
         const searchTerm = document.getElementById('search-input').value;
@@ -797,64 +918,52 @@
         document.querySelector('[data-page="questions"]').click();
     }
 
-    // Парсинг CSV
-    function parseCSV(content, delimiter) {
-        const lines = content.split('\n');
-        const questions = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') continue;
-            
-            let values = [];
-            let inQuote = false;
-            let currentValue = '';
-            
-            for (let char of lines[i]) {
-                if (char === '"') {
-                    inQuote = !inQuote;
-                } else if (char === delimiter && !inQuote) {
-                    values.push(currentValue.replace(/^"|"$/g, ''));
-                    currentValue = '';
-                } else {
-                    currentValue += char;
+    function parseJSON(content) {
+        try {
+            const data = JSON.parse(content);
+            const questions = [];
+            if (data.questions && Array.isArray(data.questions)) {
+                for (let q of data.questions) {
+                    questions.push({
+                        text: q.text || '',
+                        option1: q.options?.[0] || '',
+                        option2: q.options?.[1] || '',
+                        option3: q.options?.[2] || '',
+                        option4: q.options?.[3] || '',
+                        correct: q.correct || '',
+                        topic: q.topic || 'Прочее',
+                        image: q.image || ''
+                    });
                 }
             }
-            values.push(currentValue.replace(/^"|"$/g, ''));
-            
-            if (values.length >= 7) {
-                questions.push({
-                    text: values[0],
-                    option1: values[1],
-                    option2: values[2],
-                    option3: values[3],
-                    option4: values[4],
-                    correct: values[5],
-                    topic: values[6],
-                    image: values[7] || ''
-                });
-            }
+            return questions;
+        } catch (e) {
+            alert('Ошибка парсинга JSON: ' + e.message);
+            return [];
         }
-        return questions;
     }
 
-    // Обработка загрузки CSV
-    document.getElementById('csv-upload-form')?.addEventListener('submit', (e) => {
+    document.getElementById('json-upload-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        const file = document.getElementById('csv-file').files[0];
-        const delimiter = document.getElementById('csv-delimiter').value;
+        const file = document.getElementById('json-file').files[0];
         
         if (!file) {
-            alert('Выберите CSV файл');
+            alert('Выберите JSON файл');
             return;
         }
         
         const reader = new FileReader();
         reader.onload = function(event) {
             const content = event.target.result;
-            const parsed = parseCSV(content, delimiter);
+            const parsed = parseJSON(content);
             
-            document.getElementById('csv-preview').style.display = 'block';
-            let previewHtml = '<table class="table table-sm"><thead><tr><th>Вопрос</th><th>Правильный ответ</th><th>Тема</th></tr></thead><tbody>';
+            if (parsed.length === 0) {
+                alert('Не удалось распарсить JSON. Проверьте формат файла.');
+                return;
+            }
+            
+            document.getElementById('json-preview').style.display = 'block';
+            let previewHtml = '<table class="table table-sm"><thead><th>Вопрос</th><th>Правильный ответ</th><th>Тема</th></thead><tbody>';
             parsed.forEach(q => {
                 previewHtml += `<tr><td>${q.text.substring(0, 50)}...</td><td>${q.correct}</td><td>${q.topic}</td></tr>`;
             });
@@ -879,12 +988,12 @@
             `;
             
             loadStats();
+            loadTopicsGrid();
             loadQuestions();
         };
         reader.readAsText(file, 'UTF-8');
     });
 
-    // Навигация по страницам
     document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -903,12 +1012,11 @@
             }
             else if (page === 'topics') {
                 document.getElementById('topics-content').style.display = 'block';
-                loadStats();
+                loadTopicsGrid();
             }
         });
     });
     
-    // Фильтр и поиск
     document.getElementById('topic-filter')?.addEventListener('change', (e) => {
         const searchTerm = document.getElementById('search-input').value;
         loadQuestions(e.target.value, searchTerm);
@@ -919,8 +1027,8 @@
         loadQuestions(currentTopic, e.target.value);
     });
     
-    // Инициализация
     loadStats();
+    loadTopicsGrid();
     loadQuestions();
 </script>
 {% endblock %}
