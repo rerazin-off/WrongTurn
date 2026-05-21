@@ -1,66 +1,122 @@
 {% extends 'base.html' %}
 
-{% block title %}Wrong Turn - Подготовка к ПДД{% endblock %}
+{% block title %}Wrong Turn — Подготовка к ПДД{% endblock %}
+
+{% block nav_links %}
+<a href="{% url 'index' %}" class="active">Главная</a>
+<a href="{% url 'login' %}">Аналитика</a>
+{% endblock %}
+
+{% block header_right %}
+<a href="{% url 'login' %}" class="wt-user-icon" title="Войти">
+    <i class="fas fa-user"></i>
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .landing-hero {
+        text-align: center;
+        padding: 60px 0 48px;
+    }
+
+    .landing-hero h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--wt-dark);
+        margin-bottom: 12px;
+    }
+
+    .landing-hero p {
+        color: var(--wt-gray);
+        font-size: 1.05rem;
+        margin-bottom: 32px;
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .landing-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .landing-actions a {
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary-landing {
+        background: var(--wt-dark-btn);
+        color: #fff;
+    }
+
+    .btn-outline-landing {
+        background: var(--wt-card-bg);
+        color: var(--wt-dark);
+    }
+
+    .landing-features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 48px;
+    }
+
+    .landing-feature {
+        background: var(--wt-card-bg);
+        border-radius: 18px;
+        padding: 28px 24px;
+        text-align: center;
+    }
+
+    .landing-feature h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+    .landing-feature p {
+        font-size: 0.85rem;
+        color: #555;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+        .landing-features { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Герой секция -->
-<div class="hero-section text-center">
-    <div class="container">
-        <h1 class="hero-title">Wrong Turn</h1>
-        <p class="hero-subtitle">Подготовка к экзамену ПДД онлайн с анализом ошибок</p>
+<div class="landing-hero">
+    <h1>Начни прокачивать себя!</h1>
+    <p>Подготовка к экзамену ПДД онлайн с анализом ошибок. Зарегистрируйся и начни тренироваться!</p>
+    <div class="landing-actions">
         {% if user.is_authenticated %}
-            <a href="#" class="btn-hero">
-                Перейти к тестам <i class="fas fa-arrow-right ms-2"></i>
-            </a>
+        <a href="{% url 'home' %}" class="btn-primary-landing">Перейти в личный кабинет</a>
         {% else %}
-            <a href="{% url 'register' %}" class="btn-hero">
-                Начать подготовку <i class="fas fa-arrow-right ms-2"></i>
-            </a>
+        <a href="{% url 'register' %}" class="btn-primary-landing">Регистрация</a>
+        <a href="{% url 'login' %}" class="btn-outline-landing">Войти</a>
         {% endif %}
     </div>
 </div>
 
-<!-- Преимущества -->
-<div class="row mt-5 g-4">
-    <div class="col-md-4">
-        <div class="feature-card">
-            <i class="fas fa-database feature-icon"></i>
-            <h3 class="feature-title">Актуальные билеты</h3>
-            <p class="feature-text">Все вопросы соответствуют официальным экзаменационным билетам ГИБДД 2026 года</p>
-        </div>
+<div class="landing-features">
+    <div class="landing-feature">
+        <h3>Экзамен</h3>
+        <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
     </div>
-    <div class="col-md-4">
-        <div class="feature-card">
-            <i class="fas fa-chart-line feature-icon"></i>
-            <h3 class="feature-title">Анализ прогресса</h3>
-            <p class="feature-text">Отслеживайте свои успехи и выявляйте слабые места в подготовке</p>
-        </div>
+    <div class="landing-feature">
+        <h3>Аналитика</h3>
+        <p>Отслеживайте прогресс и выявляйте слабые места в подготовке.</p>
     </div>
-    <div class="col-md-4">
-        <div class="feature-card">
-            <i class="fas fa-gamepad feature-icon"></i>
-            <h3 class="feature-title">Игровые режимы</h3>
-            <p class="feature-text">4 режима обучения: Экзамен, Марафон, Игра и Обычный тест</p>
-        </div>
+    <div class="landing-feature">
+        <h3>Игровой режим</h3>
+        <p>Тренируйтесь и изучайте правила в интересной игровой форме!</p>
     </div>
 </div>
-
-<div class="row mt-4 g-4">
-    <div class="col-md-4">
-        <div class="feature-card">
-            <i class="fas fa-chart-pie feature-icon"></i>
-            <h3 class="feature-title">Детальная статистика</h3>
-            <p class="feature-text">Подробные отчеты по каждой теме и разделу ПДД</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card">
-            <i class="fas fa-mobile-alt feature-icon"></i>
-            <h3 class="feature-title">Доступность</h3>
-            <p class="feature-text">Занимайтесь в любое время с любого устройства</p>
-        </div>
-    </div>
-</div>
-
-
 {% endblock %}
