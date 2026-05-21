@@ -68,7 +68,10 @@ def register_view(request):
 
     return render(request, 'register.html', {'form': form})
 
-
+@login_required
+def game_view(request):
+    """Страница игры с гонками и вопросами ПДД"""
+    return render(request, 'game.html')
 @csrf_protect
 @never_cache
 def login_view(request):

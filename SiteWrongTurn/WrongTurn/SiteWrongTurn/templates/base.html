@@ -176,6 +176,11 @@
             font-weight: 500;
             padding-bottom: 6px;
             position: relative;
+            transition: color 0.2s;
+        }
+
+        .wt-nav a:hover {
+            color: var(--wt-dark);
         }
 
         .wt-nav a.active {
@@ -303,8 +308,47 @@
             display: block;
         }
 
-        {% block extra_css %}{% endblock %}
+        /* Game link special style */
+        .game-nav-link {
+            background: linear-gradient(135deg, #ED5761, #404B62);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        .game-nav-link:hover {
+            background: linear-gradient(135deg, #404B62, #ED5761);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .wt-header {
+                padding: 16px 20px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            .wt-nav {
+                gap: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .wt-main {
+                padding: 0 20px 30px;
+            }
+            .wt-footer {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
     </style>
+        
+ {% block extra_css %}
+        {% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
     {% block body %}
@@ -314,6 +358,9 @@
             {% block nav_links %}
             <a href="{% url 'home' %}" class="{% block nav_home_active %}active{% endblock %}" data-page="main">Главная</a>
             <a href="{% url 'home' %}#analytics" class="{% block nav_analytics_active %}{% endblock %}" data-page="analytics">Аналитика</a>
+            <a href="{% url 'game' %}" class="{% block nav_game_active %}{% endblock %} game-nav-link" data-page="game">
+                <i class="fas fa-gamepad"></i> Гонка ПДД
+            </a>
             {% if user.is_staff %}
             <a href="{% url 'admin_dashboard' %}" class="{% block nav_tools_active %}{% endblock %}">Инструменты</a>
             {% endif %}
@@ -353,4 +400,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Переключение секций
+    const navLinks = document.querySelectorAll('.wt-nav a[data-page]');
+    const sections = document.querySelectorAll('.wt-page-section');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const page = this.getAttribute('data-page');
+            
+            // Если это внешняя ссылка (например, /game/), не предотвращаем переход
+            if (this.getAttribute('href').startsWith('/') && !this.getAttribute('href').startsWith('#')) {
+                return;
+            }
+            
+            e.preventDefault();
+            
+            // Убираем active со всех ссылок
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Показываем нужную секцию
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.getAttribute('data-page') === page) {
+                    section.classList.add('active');
+                }
+            });
+            
+            // Специальная обработка для игры
+            if (page === 'game') {
+                const gameSection = document.querySelector('[data-page="game"]');
+                if (gameSection) {
+                    gameSection.classList.add('active');
+                    // Загружаем игру через iframe или AJAX
+                    loadGameContent();
+                }
+            }
+        });
+    });
+    
+    // Функция загрузки игры
+    function loadGameContent() {
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer && !gameContainer.querySelector('iframe')) {
+            gameContainer.innerHTML = `
+                <iframe src="/game/" 
+                        style="width:100%; height:700px; border:none; border-radius:15px;"
+                        scrolling="no">
+                </iframe>`;
+        }
+    }
+});
+</script>
 </html>
