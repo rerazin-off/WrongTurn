@@ -135,7 +135,7 @@
     .promo-text {
         color: var(--wt-accent-bright);
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 2rem;
         line-height: 1.5;
         margin-bottom: 20px;
     }
@@ -177,9 +177,20 @@
     /* ——— Профиль ——— */
     .profile-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 48px;
+        grid-template-columns: minmax(380px, 1.15fr) minmax(320px, 1fr);
+        gap: 40px 64px;
         align-items: start;
+        width: 100%;
+    }
+
+    .profile-form-col {
+        min-width: 0;
+    }
+
+    .profile-image-col {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
     }
 
     .profile-grid h2 {
@@ -194,7 +205,7 @@
 
     .profile-field input {
         width: 100%;
-        max-width: 420px;
+        max-width: 580px;
         padding: 16px 20px;
         border: none;
         border-radius: 12px;
@@ -221,10 +232,11 @@
 
     .profile-photo {
         width: 100%;
-        max-width: 520px;
+        max-width: 560px;
         border-radius: 16px;
         object-fit: cover;
         aspect-ratio: 4/3;
+        margin-left: auto;
     }
 
     .profile-actions {
@@ -427,6 +439,8 @@
     @media (max-width: 1100px) {
         .mode-cards { grid-template-columns: repeat(2, 1fr); }
         .analytics-grid, .profile-grid, .exam-preview, .test-question-layout { grid-template-columns: 1fr; }
+        .profile-image-col { justify-content: center; }
+        .profile-photo { margin-left: 0; max-width: 100%; }
     }
 
     @media (max-width: 600px) {
@@ -447,25 +461,25 @@
         <a href="{% url 'test_intro' 'exam' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Экзамен</h3>
             <p>Попробуйте свои силы как на настоящем экзамене! Но будьте внимательны, у вас всего 2 попытки!</p>
-            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=260&fit=crop" alt="Экзамен">
+            <img src="{{ MEDIA_URL }}images_for_pages/exam.jpg" alt="Экзамен">
         </a>
         <a href="{% url 'test_intro' 'normal' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Обычный</h3>
             <p>Тренируйтесь, чтобы повышать уровень своих знаний!</p>
-            <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=260&fit=crop" alt="Обычный режим">
+            <img src="{{ MEDIA_URL }}images_for_pages/ordinary.jpg" alt="Обычный режим">
         </a>
         <a href="{% url 'test_intro' 'marathon' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Марафон</h3>
             <p>Большой забег — все вопросы из базы! Самое главное добежать.</p>
             <div class="marathon-placeholder">
-                <span>{{ questions_count|default:"∞" }}</span>
+                <span>{{ questions_count|default:"800" }}</span>
                 <small>вопросов в банке</small>
             </div>
         </a>
         <article class="mode-card">
             <h3>Игра</h3>
             <p>Тренируйтесь и изучайте правила в интересной игровой форме!</p>
-            <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=260&fit=crop" alt="Игра">
+            <img src="{{ MEDIA_URL }}images_for_pages/game.png" alt="Игра">
         </article>
     </div>
 </section>
@@ -524,7 +538,7 @@
 <!-- Профиль -->
 <section id="page-profile" class="wt-page-section" data-page="profile">
     <div class="profile-grid">
-        <div>
+        <div class="profile-form-col">
             <h2>Личная информация:</h2>
             <form method="post" action="{% url 'profile_update' %}" id="profile-form">
                 {% csrf_token %}
@@ -558,8 +572,8 @@
                 </div>
             </form>
         </div>
-        <div>
-            <img class="profile-photo" src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=450&fit=crop" alt="Урок вождения">
+        <div class="profile-image-col">
+            <img class="profile-photo" src="{{ MEDIA_URL }}images_for_pages/profile.jpg" alt="Урок вождения">
         </div>
     </div>
 </section>

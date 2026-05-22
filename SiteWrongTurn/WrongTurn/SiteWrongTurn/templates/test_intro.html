@@ -52,7 +52,12 @@
         <small style="color:#ccc;margin-top:8px;">вопросов в марафоне</small>
     </div>
     {% else %}
-    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop" alt="{{ title }}">
+    {% if mode == 'exam' %}
+    <img src="{{ MEDIA_URL }}images_for_pages/exam.jpg" alt="{{ title }}">
+    {% elif mode == 'normal' %}
+    <img src="{{ MEDIA_URL }}images_for_pages/ordinary.jpg" alt="{{ title }}">
+    {% endif %}
+    <!-- <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop" alt="{{ title }}"> -->
     {% endif %}
     <div>
         <h2>{{ title }}</h2>
