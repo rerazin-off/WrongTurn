@@ -358,9 +358,9 @@
             {% block nav_links %}
             <a href="{% url 'home' %}" class="{% block nav_home_active %}active{% endblock %}" data-page="main">Главная</a>
             <a href="{% url 'home' %}#analytics" class="{% block nav_analytics_active %}{% endblock %}" data-page="analytics">Аналитика</a>
-            <a href="{% url 'game' %}" class="{% block nav_game_active %}{% endblock %} game-nav-link" data-page="game">
+            <!-- <a href="{% url 'game' %}" class="{% block nav_game_active %}{% endblock %} game-nav-link" data-page="game">
                 <i class="fas fa-gamepad"></i> Гонка ПДД
-            </a>
+            </a> -->
             {% if user.is_staff %}
             <a href="{% url 'admin_dashboard' %}" class="{% block nav_tools_active %}{% endblock %}">Инструменты</a>
             {% endif %}
