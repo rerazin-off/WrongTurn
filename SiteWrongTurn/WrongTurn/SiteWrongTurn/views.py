@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.utils import timezone
 from django.conf import settings
 
-from .forms import RegistrationForm
+from .forms import RegistrationForm, ProfileForm
 from .models import User, Bank_questions, Types, Testing, Results_testings
 from .image_utils import get_image_url, process_image_input, delete_image_file
 from .testing_utils import (
@@ -39,7 +39,27 @@ def index(request):
 def home(request):
     analytics = get_analytics_for_user(request.user)
     analytics['questions_count'] = Bank_questions.objects.count()
+    analytics['profile_form'] = ProfileForm(instance=request.user)
     return render(request, 'home.html', analytics)
+
+
+@login_required
+@require_POST
+@csrf_protect
+def profile_update(request):
+    form = ProfileForm(request.POST, instance=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Личные данные успешно сохранены.')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                if field != '__all__':
+                    label = form.fields[field].label if field in form.fields else field
+                    messages.error(request, f'{label}: {error}')
+                else:
+                    messages.error(request, error)
+    return redirect('/home/#profile')
 
 
 @user_passes_test(is_admin, login_url='login')

@@ -208,6 +208,17 @@
         color: #888;
     }
 
+    .profile-field input:focus {
+        outline: 2px solid rgba(67, 75, 94, 0.25);
+    }
+
+    .profile-field .profile-error {
+        display: block;
+        color: #e6525a;
+        font-size: 0.8rem;
+        margin-top: 6px;
+    }
+
     .profile-photo {
         width: 100%;
         max-width: 520px;
@@ -511,26 +522,41 @@
 </div>
 
 <!-- Профиль -->
-<section id="page-profile" class="wt-page-section">
+<section id="page-profile" class="wt-page-section" data-page="profile">
     <div class="profile-grid">
         <div>
             <h2>Личная информация:</h2>
-            <div class="profile-field">
-                <input type="text" placeholder="Фамилия" value="{{ user.last_name|default:'' }}" readonly>
-            </div>
-            <div class="profile-field">
-                <input type="text" placeholder="Имя" value="{{ user.first_name|default:'' }}" readonly>
-            </div>
-            <div class="profile-field">
-                <input type="text" placeholder="Отчество" value="{{ user.patronymic|default:'' }}" readonly>
-            </div>
-            <div class="profile-field">
-                <input type="email" placeholder="Почта" value="{{ user.email|default:'' }}" readonly>
-            </div>
-            <div class="profile-actions">
-                <button type="button" class="wt-btn-dark">Изменить</button>
-                <a href="{% url 'logout' %}" class="wt-btn-logout">Выйти</a>
-            </div>
+            <form method="post" action="{% url 'profile_update' %}" id="profile-form">
+                {% csrf_token %}
+                <div class="profile-field">
+                    {{ profile_form.last_name }}
+                    {% for error in profile_form.last_name.errors %}
+                    <span class="profile-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="profile-field">
+                    {{ profile_form.first_name }}
+                    {% for error in profile_form.first_name.errors %}
+                    <span class="profile-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="profile-field">
+                    {{ profile_form.patronymic }}
+                    {% for error in profile_form.patronymic.errors %}
+                    <span class="profile-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="profile-field">
+                    {{ profile_form.email }}
+                    {% for error in profile_form.email.errors %}
+                    <span class="profile-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="profile-actions">
+                    <button type="submit" class="wt-btn-dark">Изменить</button>
+                    <a href="{% url 'logout' %}" class="wt-btn-logout">Выйти</a>
+                </div>
+            </form>
         </div>
         <div>
             <img class="profile-photo" src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=450&fit=crop" alt="Урок вождения">
@@ -584,6 +610,9 @@
 
     if (window.location.hash === '#analytics') {
         showPage('analytics');
+    }
+    if (window.location.hash === '#profile') {
+        showPage('profile');
     }
 })();
 </script>

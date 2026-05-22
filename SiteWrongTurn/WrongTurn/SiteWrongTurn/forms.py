@@ -113,6 +113,52 @@ class RegistrationForm(UserCreationForm):
         return cleaned_data
 
 
+class ProfileForm(forms.ModelForm):
+    """Редактирование личных данных в кабинете."""
+
+    class Meta:
+        model = User
+        fields = ('last_name', 'first_name', 'patronymic', 'email')
+        labels = {
+            'last_name': 'Фамилия',
+            'first_name': 'Имя',
+            'patronymic': 'Отчество',
+            'email': 'Почта',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        placeholders = {
+            'last_name': 'Фамилия',
+            'first_name': 'Имя',
+            'patronymic': 'Отчество',
+            'email': 'Почта',
+        }
+        for name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'profile-input',
+                'autocomplete': 'off',
+                'placeholder': placeholders.get(name, ''),
+            })
+        self.fields['last_name'].required = True
+        self.fields['first_name'].required = True
+        self.fields['email'].required = True
+        self.fields['patronymic'].required = False
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email_regex = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+            if not email_regex.match(email):
+                raise ValidationError('Введите корректный email (пример: user@domain.com)')
+            qs = User.objects.filter(email__iexact=email)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise ValidationError('Пользователь с таким email уже существует')
+        return email
+
+
 class LoginForm(AuthenticationForm):
     """
     Форма авторизации
