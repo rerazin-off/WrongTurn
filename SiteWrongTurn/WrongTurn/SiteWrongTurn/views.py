@@ -12,14 +12,16 @@ from django.conf import settings
 
 from .forms import RegistrationForm
 from .models import User, Bank_questions, Types, Testing, Results_testings
+from .image_utils import get_image_url, process_image_input, delete_image_file
 from .testing_utils import (
     MODE_CONFIG,
-    NORMAL_QUESTIONS_COUNT,
+    EXAM_MAX_ERRORS,
     parse_incorrect_answers,
     pack_incorrect_answers,
     question_to_dict,
-    get_or_create_test_type,
-    pick_random_questions,
+    build_question_ids_for_mode,
+    count_errors,
+    should_stop_exam,
     get_analytics_for_user,
     save_test_results,
 )
@@ -36,6 +38,7 @@ def index(request):
 @login_required
 def home(request):
     analytics = get_analytics_for_user(request.user)
+    analytics['questions_count'] = Bank_questions.objects.count()
     return render(request, 'home.html', analytics)
 
 
@@ -107,16 +110,17 @@ def test_intro(request, mode):
     if mode not in MODE_CONFIG:
         messages.error(request, 'Неизвестный режим тестирования.')
         return redirect('home')
-    if mode != 'normal' and mode != 'exam':
-        messages.info(request, 'Этот режим пока в разработке.')
-        return redirect('home')
 
     cfg = MODE_CONFIG[mode]
+    total_in_db = Bank_questions.objects.count()
+    q_count = cfg['questions_count'] if cfg['questions_count'] else total_in_db
+
     return render(request, 'test_intro.html', {
         'mode': mode,
         'title': cfg['title'],
         'description': cfg['description'],
-        'questions_count': cfg['questions_count'],
+        'questions_count': q_count,
+        'max_errors': cfg.get('max_errors'),
     })
 
 
@@ -126,18 +130,14 @@ def test_start(request, mode):
         messages.error(request, 'Неизвестный режим тестирования.')
         return redirect('home')
 
-    if mode != 'normal':
-        messages.info(request, 'Сейчас доступен только обычный режим тестирования.')
-        return redirect('home')
-
     cfg = MODE_CONFIG[mode]
-    count = cfg['questions_count']
-    question_ids = pick_random_questions(count)
+    question_ids = build_question_ids_for_mode(mode)
     if not question_ids:
         total = Bank_questions.objects.count()
+        needed = cfg.get('questions_count') or 1
         messages.error(
             request,
-            f'В банке недостаточно вопросов ({total} из {count}). '
+            f'В банке недостаточно вопросов ({total} из {needed}). '
             'Администратор должен добавить вопросы через «Инструменты».',
         )
         return redirect('home')
@@ -148,6 +148,7 @@ def test_start(request, mode):
         'current_index': 0,
         'answers': [],
         'start_time': timezone.now().isoformat(),
+        'stopped_early': False,
     }
     return redirect('test_question')
 
@@ -168,12 +169,19 @@ def test_question(request):
     q_data = question_to_dict(question)
     cfg = MODE_CONFIG.get(test_data['mode'], MODE_CONFIG['normal'])
 
+    errors_count = count_errors(test_data.get('answers', []))
+    max_errors = cfg.get('max_errors', 0)
+    errors_left = max(0, max_errors - errors_count) if test_data['mode'] == 'exam' else None
+
     return render(request, 'test_question.html', {
         'question': q_data,
         'question_number': index + 1,
         'total_questions': len(question_ids),
         'mode_title': cfg['title'],
         'is_last': index >= len(question_ids) - 1,
+        'mode': test_data['mode'],
+        'errors_left': errors_left,
+        'max_errors': max_errors,
     })
 
 
@@ -200,6 +208,16 @@ def test_answer(request):
     test_data['current_index'] = index + 1
     request.session['active_test'] = test_data
     request.session.modified = True
+
+    if should_stop_exam(test_data):
+        test_data['stopped_early'] = True
+        request.session['active_test'] = test_data
+        request.session.modified = True
+        messages.warning(
+            request,
+            f'Допущено {EXAM_MAX_ERRORS} ошибки. Экзамен завершён досрочно.',
+        )
+        return redirect('test_finish')
 
     if test_data['current_index'] >= len(question_ids):
         return redirect('test_finish')
@@ -232,13 +250,13 @@ def test_results(request):
 # ——— API администратора (банк вопросов) ———
 
 def _question_api_item(q):
-    wrong, image = parse_incorrect_answers(q.incorrect_answers)
+    wrong, image_path = parse_incorrect_answers(q.incorrect_answers)
     return {
         'id': q.id_question,
         'text': q.question_text,
         'correct': q.right_answer,
-        'topic': 'Прочее',
-        'image': image,
+        'image': get_image_url(image_path),
+        'image_path': image_path,
         'options': wrong + [q.right_answer],
     }
 
@@ -261,7 +279,10 @@ def api_question_add(request):
     text = data.get('text', '').strip()
     correct = data.get('correct', '').strip()
     options = data.get('options', [])
-    image = data.get('image', '')
+    try:
+        image_path = process_image_input(data.get('image', ''))
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
 
     if not text or not correct or len(options) < 3:
         return JsonResponse({'error': 'Заполните вопрос, варианты и правильный ответ'}, status=400)
@@ -273,7 +294,7 @@ def api_question_add(request):
     q = Bank_questions.objects.create(
         question_text=text,
         right_answer=correct,
-        incorrect_answers=pack_incorrect_answers(wrong_options[:3], image),
+        incorrect_answers=pack_incorrect_answers(wrong_options[:3], image_path),
         admin=request.user,
     )
     return JsonResponse({'success': True, 'question': _question_api_item(q)})
@@ -291,9 +312,17 @@ def api_question_edit(request, pk):
     text = data.get('text', '').strip()
     correct = data.get('correct', '').strip()
     options = data.get('options', [])
-    image = data.get('image')
-    if image is None:
-        _, image = parse_incorrect_answers(question.incorrect_answers)
+    _, old_image = parse_incorrect_answers(question.incorrect_answers)
+    image_raw = data.get('image')
+    try:
+        if image_raw is None:
+            image_path = old_image
+        else:
+            image_path = process_image_input(image_raw, old_path=old_image)
+            if image_path != old_image and old_image:
+                delete_image_file(old_image)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
 
     if not text or not correct:
         return JsonResponse({'error': 'Заполните обязательные поля'}, status=400)
@@ -301,7 +330,7 @@ def api_question_edit(request, pk):
     wrong_options = [o for o in options if o != correct][:3]
     question.question_text = text
     question.right_answer = correct
-    question.incorrect_answers = pack_incorrect_answers(wrong_options, image)
+    question.incorrect_answers = pack_incorrect_answers(wrong_options, image_path)
     question.save()
     return JsonResponse({'success': True, 'question': _question_api_item(question)})
 
@@ -310,7 +339,9 @@ def api_question_edit(request, pk):
 @require_POST
 def api_question_delete(request, pk):
     question = get_object_or_404(Bank_questions, id_question=pk)
+    _, image_path = parse_incorrect_answers(question.incorrect_answers)
     question.delete()
+    delete_image_file(image_path)
     return JsonResponse({'success': True})
 
 
@@ -333,10 +364,14 @@ def api_questions_upload_json(request):
         wrong = [o for o in options if o != correct]
         if len(wrong) < 1:
             continue
+        try:
+            image_path = process_image_input(item.get('image', ''))
+        except ValueError:
+            image_path = ''
         Bank_questions.objects.create(
             question_text=text,
             right_answer=correct,
-            incorrect_answers=pack_incorrect_answers(wrong[:3], item.get('image', '')),
+            incorrect_answers=pack_incorrect_answers(wrong[:3], image_path),
             admin=request.user,
         )
         created += 1

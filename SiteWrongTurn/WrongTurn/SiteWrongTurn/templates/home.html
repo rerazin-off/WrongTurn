@@ -443,14 +443,14 @@
             <p>Тренируйтесь, чтобы повышать уровень своих знаний!</p>
             <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=260&fit=crop" alt="Обычный режим">
         </a>
-        <article class="mode-card">
+        <a href="{% url 'test_intro' 'marathon' %}" class="mode-card clickable" style="text-decoration:none;color:inherit;">
             <h3>Марафон</h3>
-            <p>Большой забег на 400 вопросов! Самое главное добежать.</p>
+            <p>Большой забег — все вопросы из базы! Самое главное добежать.</p>
             <div class="marathon-placeholder">
-                <span>800</span>
-                <small>Марафон пройден</small>
+                <span>{{ questions_count|default:"∞" }}</span>
+                <small>вопросов в банке</small>
             </div>
-        </article>
+        </a>
         <article class="mode-card">
             <h3>Игра</h3>
             <p>Тренируйтесь и изучайте правила в интересной игровой форме!</p>

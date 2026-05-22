@@ -14,6 +14,9 @@
         font-size: 2rem;
         margin-bottom: 16px;
     }
+    .results-page h1.failed {
+        color: var(--wt-dark);
+    }
     .results-score {
         font-size: 1.1rem;
         margin-bottom: 12px;
@@ -71,8 +74,17 @@
 
 {% block content %}
 <div class="results-page">
+    {% if result.exam_failed %}
+    <h1 class="failed">Экзамен завершён</h1>
+    <p class="results-sub">Вы допустили 2 ошибки. Тестирование остановлено досрочно.</p>
+    {% else %}
     <h1>Поздравляем!</h1>
-    <p class="results-score">Ваш результат составил: <strong>{{ result.correct }} из {{ result.total }}!</strong></p>
+    {% endif %}
+    <p class="results-score">Ваш результат составил: <strong>{{ result.correct }} из {{ result.total }}!</strong>
+    {% if result.planned_total > result.total %}
+    (запланировано {{ result.planned_total }})
+    {% endif %}
+    </p>
     {% if result.wrong_details %}
     <p class="results-sub">Посмотрите в каких вопросах вы сделали ошибку:</p>
     {% for item in result.wrong_details %}
@@ -90,12 +102,12 @@
         </div>
     </div>
     {% endfor %}
-    {% else %}
+    {% elif not result.exam_failed %}
     <p class="results-sub">Все ответы верные — отличная работа!</p>
     {% endif %}
     <div class="results-actions">
         <a href="{% url 'home' %}" class="wt-btn-dark">На главную</a>
-        <a href="{% url 'test_start' 'normal' %}" class="wt-btn-gray" style="text-decoration:none;">Пройти ещё раз</a>
+        <a href="{% url 'test_intro' result.mode %}" class="wt-btn-gray" style="text-decoration:none;">Пройти ещё раз</a>
     </div>
 </div>
 {% endblock %}

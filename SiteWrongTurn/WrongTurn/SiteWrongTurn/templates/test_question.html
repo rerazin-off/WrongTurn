@@ -40,6 +40,12 @@
         margin-bottom: 24px;
         line-height: 1.5;
     }
+    .exam-errors-hint {
+        color: var(--wt-accent-bright);
+        font-weight: 600;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
     .answer-option {
         display: block;
         width: 100%;
@@ -86,7 +92,10 @@
             {% endif %}
         </div>
         <div>
-            <div class="question-num">Вопрос №{{ question_number }}</div>
+            <div class="question-num">Вопрос №{{ question_number }} из {{ total_questions }}</div>
+            {% if mode == 'exam' and errors_left is not None %}
+            <p class="exam-errors-hint">Допустимо ошибок: {{ max_errors }}. Осталось до автозавершения: {{ errors_left }}</p>
+            {% endif %}
             <p class="question-text">{{ question.text }}</p>
             {% for option in question.options %}
             <label class="answer-option">

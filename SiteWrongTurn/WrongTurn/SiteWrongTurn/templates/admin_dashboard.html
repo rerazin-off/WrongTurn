@@ -53,6 +53,18 @@
     font-weight: bold;
     color: #E57373;
 }
+
+#stats-row {
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 8px;
+}
+
+#stats-row .stat-card-col {
+    flex: 0 0 auto;
+    width: 260px;
+    max-width: 100%;
+}
 .btn-upload {
     background: #E57373;
     color: white;
@@ -352,9 +364,6 @@
                     <a class="nav-link" href="#" data-page="questions">
                         <i class="fas fa-question-circle"></i> Все вопросы
                     </a>
-                    <a class="nav-link" href="#" data-page="topics">
-                        <i class="fas fa-folder"></i> Темы ПДД
-                    </a>
                 </nav>
                 <hr class="bg-light">
                 <a href="/" class="nav-link">
@@ -367,21 +376,14 @@
         <div class="col-md-9">
             <!-- Статистика -->
             <div class="row" id="stats-row">
-                <div class="col-md-4">
+                <div class="col stat-card-col">
                     <div class="admin-card text-center">
                         <i class="fas fa-question-circle fa-3x" style="color: #ED5761;"></i>
                         <div class="stat-number mt-2" id="total-questions">0</div>
                         <div>Всего вопросов</div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="admin-card text-center">
-                        <i class="fas fa-folder fa-3x" style="color: #ED5761;"></i>
-                        <div class="stat-number mt-2" id="total-topics">8</div>
-                        <div>Тем ПДД</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col stat-card-col">
                     <div class="admin-card text-center">
                         <i class="fas fa-image fa-3x" style="color: #ED5761;"></i>
                         <div class="stat-number mt-2" id="total-images">0</div>
@@ -394,7 +396,7 @@
             <div id="dashboard-content" class="content-page">
                 <div class="admin-card">
                     <h3><i class="fas fa-tachometer-alt me-2"></i>Добро пожаловать, {{ user.username }}!</h3>
-                    <p class="text-muted">У вас есть права администратора. Здесь вы можете управлять вопросами и темами ПДД.</p>
+                    <p class="text-muted">У вас есть права администратора. Управление вопросами и загрузка изображений в <code>media/questions/</code>.</p>
                     <hr>
                     <div class="row mt-4">
                         <div class="col-md-6">
@@ -404,7 +406,7 @@
                                     <li>Загрузите JSON файл с вопросами</li>
                                     <li>Добавьте новый вопрос вручную с изображением</li>
                                     <li>Отредактируйте существующие вопросы</li>
-                                    <li>Просматривайте статистику по темам</li>
+                                    <li>Изображения сохраняются в папку media/questions/</li>
                                 </ul>
                             </div>
                         </div>
@@ -418,7 +420,6 @@
       "text": "Какой знак запрещает движение?",
       "options": ["А", "Б", "В", "Г"],
       "correct": "Б",
-      "topic": "Знаки",
       "image": ""
     }
   ]
@@ -467,21 +468,7 @@
                     </div>
                     
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label>Фильтр по теме:</label>
-                            <select id="topic-filter" class="form-select">
-                                <option value="all">Все темы</option>
-                                <option value="Знаки">Дорожные знаки</option>
-                                <option value="Разметка">Дорожная разметка</option>
-                                <option value="Перекрестки">Перекрестки</option>
-                                <option value="Скорость">Скоростной режим</option>
-                                <option value="Расположение">Расположение ТС</option>
-                                <option value="Штрафы">Штрафы</option>
-                                <option value="Дистанция">Безопасная дистанция</option>
-                                <option value="Прочее">Прочее</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label>Поиск:</label>
                             <input type="text" id="search-input" class="form-control" placeholder="Поиск по вопросу...">
                         </div>
@@ -495,7 +482,6 @@
                                     <th>Вопрос</th>
                                     <th>Изображение</th>
                                     <th>Правильный ответ</th>
-                                    <th>Тема</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -505,15 +491,6 @@
                 </div>
             </div>
 
-            <!-- Страница 4: Темы ПДД -->
-            <div id="topics-content" class="content-page" style="display: none;">
-                <div class="admin-card">
-                    <h3><i class="fas fa-folder me-2"></i>Темы ПДД</h3>
-                    <p class="text-muted">Вопросы распределены по тематическим разделам. Нажмите на тему для фильтрации вопросов.</p>
-                    
-                    <div class="topics-container" id="topics-grid"></div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -559,24 +536,9 @@
                             <input type="text" class="form-control" id="new-option4" required>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Правильный ответ (текст) *</label>
-                            <input type="text" class="form-control" id="new-correct" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Тема *</label>
-                            <select class="form-select" id="new-topic">
-                                <option value="Знаки">Дорожные знаки</option>
-                                <option value="Разметка">Дорожная разметка</option>
-                                <option value="Перекрестки">Перекрестки</option>
-                                <option value="Скорость">Скоростной режим</option>
-                                <option value="Расположение">Расположение ТС</option>
-                                <option value="Штрафы">Штрафы</option>
-                                <option value="Дистанция">Безопасная дистанция</option>
-                                <option value="Прочее">Прочее</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Правильный ответ (текст) *</label>
+                        <input type="text" class="form-control" id="new-correct" required>
                     </div>
                 </form>
             </div>
@@ -632,24 +594,9 @@
                             <input type="text" class="form-control" id="edit-option4" required>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Правильный ответ (текст) *</label>
-                            <input type="text" class="form-control" id="edit-correct" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Тема *</label>
-                            <select class="form-select" id="edit-topic">
-                                <option value="Знаки">Дорожные знаки</option>
-                                <option value="Разметка">Дорожная разметка</option>
-                                <option value="Перекрестки">Перекрестки</option>
-                                <option value="Скорость">Скоростной режим</option>
-                                <option value="Расположение">Расположение ТС</option>
-                                <option value="Штрафы">Штрафы</option>
-                                <option value="Дистанция">Безопасная дистанция</option>
-                                <option value="Прочее">Прочее</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Правильный ответ (текст) *</label>
+                        <input type="text" class="form-control" id="edit-correct" required>
                     </div>
                 </form>
             </div>
@@ -703,7 +650,6 @@
         const data = await apiRequest('/api/questions/', 'GET');
         questionsData = data.questions || [];
         loadStats();
-        loadTopicsGrid();
         loadQuestions();
     }
 
@@ -743,51 +689,8 @@
         document.getElementById('total-images').innerText = imagesCount;
     }
 
-    function loadTopicsGrid() {
-        const topics = [
-            { name: 'Дорожные знаки', key: 'Знаки', icon: 'fa-traffic-light', desc: 'Все знаки дорожного движения и их значения', color: '#ED5761' },
-            { name: 'Дорожная разметка', key: 'Разметка', icon: 'fa-road', desc: 'Горизонтальная и вертикальная разметка', color: '#404B62' },
-            { name: 'Перекрестки', key: 'Перекрестки', icon: 'fa-exchange-alt', desc: 'Правила проезда перекрестков', color: '#ED5761' },
-            { name: 'Скоростной режим', key: 'Скорость', icon: 'fa-tachometer-alt', desc: 'Ограничения скорости движения', color: '#404B62' },
-            { name: 'Расположение ТС', key: 'Расположение', icon: 'fa-car', desc: 'Правила расположения на дороге', color: '#ED5761' },
-            { name: 'Штрафы', key: 'Штрафы', icon: 'fa-gavel', desc: 'Штрафы за нарушения ПДД', color: '#404B62' },
-            { name: 'Безопасная дистанция', key: 'Дистанция', icon: 'fa-ruler-combined', desc: 'Дистанция и интервалы движения', color: '#ED5761' },
-            { name: 'Прочее', key: 'Прочее', icon: 'fa-ellipsis-h', desc: 'Остальные разделы ПДД', color: '#404B62' }
-        ];
-        
-        const maxQuestions = Math.max(...topics.map(t => questionsData.filter(q => q.topic === t.key).length), 1);
-        
-        let html = '';
-        for (let topic of topics) {
-            const count = questionsData.filter(q => q.topic === topic.key).length;
-            const percentage = (count / maxQuestions) * 100;
-            
-            html += `
-                <div class="topic-card" onclick="filterByTopic('${topic.key}')">
-                    <i class="fas ${topic.icon} topic-icon" style="color: ${topic.color};"></i>
-                    <h4>${topic.name}</h4>
-                    <p>${topic.desc}</p>
-                    <div class="topic-stats">
-                        <span class="topic-count">${count}</span>
-                        <span class="topic-label">вопросов</span>
-                    </div>
-                    <div class="topic-progress">
-                        <div class="topic-progress-bar" style="width: ${percentage}%;"></div>
-                    </div>
-                    <div class="topic-hint">
-                        <i class="fas fa-mouse-pointer"></i> Нажмите для фильтрации
-                    </div>
-                </div>
-            `;
-        }
-        document.getElementById('topics-grid').innerHTML = html;
-    }
-
-    function loadQuestions(filterTopic = 'all', searchTerm = '') {
+    function loadQuestions(searchTerm = '') {
         let filtered = questionsData;
-        if (filterTopic !== 'all') {
-            filtered = filtered.filter(q => q.topic === filterTopic);
-        }
         if (searchTerm) {
             filtered = filtered.filter(q => q.text.toLowerCase().includes(searchTerm.toLowerCase()));
         }
@@ -801,7 +704,6 @@
                     <td class="question-text-cell">${q.text}</td>
                     <td class="image-cell">${imageHtml}</td>
                     <td><span class="topic-badge">${q.correct}</span></td>
-                    <td><span class="topic-badge">${q.topic}</span></td>
                     <td class="actions-cell">
                         <button class="btn-edit" onclick="openEditModal(${q.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn-delete" onclick="deleteQuestion(${q.id})"><i class="fas fa-trash"></i></button>
@@ -829,8 +731,6 @@
             document.getElementById('edit-option3').value = question.options[2] || '';
             document.getElementById('edit-option4').value = question.options[3] || '';
             document.getElementById('edit-correct').value = question.correct;
-            document.getElementById('edit-topic').value = question.topic;
-            
             const container = document.getElementById('current-image-container');
             if (question.image && question.image !== '') {
                 container.innerHTML = `<img src="${question.image}" alt="текущее изображение" style="max-width:100%; max-height:100px; object-fit:contain;">`;
@@ -878,10 +778,7 @@
             const data = await apiRequest(`/api/questions/${id}/edit/`, 'POST', payload);
             questionsData[index] = data.question;
             loadStats();
-            loadTopicsGrid();
-            const currentTopic = document.getElementById('topic-filter').value;
-            const currentSearch = document.getElementById('search-input').value;
-            loadQuestions(currentTopic, currentSearch);
+            loadQuestions(document.getElementById('search-input').value);
             bootstrap.Modal.getInstance(document.getElementById('editQuestionModal')).hide();
             alert('Вопрос успешно обновлен!');
         } catch (err) {
@@ -926,10 +823,7 @@
             const data = await apiRequest('/api/questions/add/', 'POST', payload);
             questionsData.push(data.question);
             loadStats();
-            loadTopicsGrid();
-            const currentTopic = document.getElementById('topic-filter').value;
-            const currentSearch = document.getElementById('search-input').value;
-            loadQuestions(currentTopic, currentSearch);
+            loadQuestions(document.getElementById('search-input').value);
             bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
             alert('Вопрос успешно добавлен!');
         } catch (err) {
@@ -943,21 +837,11 @@
             await apiRequest(`/api/questions/${id}/delete/`, 'POST', {});
             questionsData = questionsData.filter(q => q.id !== id);
             loadStats();
-            loadTopicsGrid();
-            const currentTopic = document.getElementById('topic-filter').value;
-            const currentSearch = document.getElementById('search-input').value;
-            loadQuestions(currentTopic, currentSearch);
+            loadQuestions(document.getElementById('search-input').value);
             alert('Вопрос удален!');
         } catch (err) {
             alert(err.message);
         }
-    }
-
-    function filterByTopic(topic) {
-        document.getElementById('topic-filter').value = topic;
-        const searchTerm = document.getElementById('search-input').value;
-        loadQuestions(topic, searchTerm);
-        document.querySelector('[data-page="questions"]').click();
     }
 
     function parseJSON(content) {
@@ -973,7 +857,6 @@
                         option3: q.options?.[2] || '',
                         option4: q.options?.[3] || '',
                         correct: q.correct || '',
-                        topic: q.topic || 'Прочее',
                         image: q.image || ''
                     });
                 }
@@ -1005,9 +888,9 @@
             }
             
             document.getElementById('json-preview').style.display = 'block';
-            let previewHtml = '<table class="table table-sm"><thead><th>Вопрос</th><th>Правильный ответ</th><th>Тема</th></thead><tbody>';
+            let previewHtml = '<table class="table table-sm"><thead><th>Вопрос</th><th>Правильный ответ</th></thead><tbody>';
             parsed.forEach(q => {
-                previewHtml += `<tr><td>${q.text.substring(0, 50)}...</td><td>${q.correct}</td><td>${q.topic}</td></tr>`;
+                previewHtml += `<tr><td>${q.text.substring(0, 50)}...</td><td>${q.correct}</td></tr>`;
             });
             previewHtml += '</tbody></table>';
             document.getElementById('preview-content').innerHTML = previewHtml;
@@ -1016,7 +899,6 @@
                 questions: parsed.map(q => ({
                     text: q.text,
                     correct: q.correct,
-                    topic: q.topic,
                     image: q.image || '',
                     options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
                 })),
@@ -1050,23 +932,13 @@
             else if (page === 'upload') document.getElementById('upload-content').style.display = 'block';
             else if (page === 'questions') {
                 document.getElementById('questions-content').style.display = 'block';
-                loadQuestions(document.getElementById('topic-filter').value, document.getElementById('search-input')?.value || '');
-            }
-            else if (page === 'topics') {
-                document.getElementById('topics-content').style.display = 'block';
-                loadTopicsGrid();
+                loadQuestions(document.getElementById('search-input')?.value || '');
             }
         });
     });
     
-    document.getElementById('topic-filter')?.addEventListener('change', (e) => {
-        const searchTerm = document.getElementById('search-input').value;
-        loadQuestions(e.target.value, searchTerm);
-    });
-    
     document.getElementById('search-input')?.addEventListener('input', (e) => {
-        const currentTopic = document.getElementById('topic-filter').value;
-        loadQuestions(currentTopic, e.target.value);
+        loadQuestions(e.target.value);
     });
     
     loadQuestionsFromServer().catch((err) => {
