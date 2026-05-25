@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Вопрос {{ question_number }} — Wrong Turn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-question-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: start;
+        margin-top: 20px;
+    }
+    .test-question-layout img {
+        width: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        max-height: 340px;
+    }
+    .question-image-placeholder {
+        width: 100%;
+        min-height: 240px;
+        border-radius: 12px;
+        background: var(--wt-input-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--wt-gray);
+        font-size: 0.9rem;
+    }
+    .question-num {
+        color: var(--wt-accent-bright);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .question-text {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+    .exam-errors-hint {
+        color: var(--wt-accent-bright);
+        font-weight: 600;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .answer-option {
+        display: block;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    .answer-option input {
+        display: none;
+    }
+    .answer-label {
+        display: block;
+        width: 100%;
+        padding: 16px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+        background: var(--wt-input-bg);
+        color: var(--wt-dark-btn);
+        transition: background 0.2s, color 0.2s;
+    }
+    .answer-option input:checked + .answer-label {
+        background: var(--wt-accent-bright);
+        color: #fff;
+    }
+    @media (max-width: 900px) {
+        .test-question-layout { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{% url 'test_answer' %}" id="test-form">
+    {% csrf_token %}
+    <div class="test-question-layout">
+        <div>
+            {% if question.image %}
+            <img src="{{ question.image }}" alt="Иллюстрация к вопросу">
+            {% else %}
+            <div class="question-image-placeholder">
+                <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop" alt="Вопрос" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
+            </div>
+            {% endif %}
+        </div>
+        <div>
+            <div class="question-num">Вопрос №{{ question_number }} из {{ total_questions }}</div>
+            {% if mode == 'exam' and errors_left is not None %}
+            <p class="exam-errors-hint">Допустимо ошибок: {{ max_errors }}. Осталось до автозавершения: {{ errors_left }}</p>
+            {% endif %}
+            <p class="question-text">{{ question.text }}</p>
+            {% for option in question.options %}
+            <label class="answer-option">
+                <input type="radio" name="answer" value="{{ option }}" required>
+                <span class="answer-label">{{ option }}</span>
+            </label>
+            {% endfor %}
+            <button type="submit" class="wt-btn-dark" style="margin-top: 16px;">
+                {% if is_last %}Завершить тест{% else %}Следующий вопрос{% endif %}
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

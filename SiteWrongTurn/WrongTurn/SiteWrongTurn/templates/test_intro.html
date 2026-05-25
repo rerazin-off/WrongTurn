@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — Wrong Turn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exam-preview {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .exam-preview img {
+        width: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+        max-height: 380px;
+    }
+    .exam-preview h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    .exam-preview p {
+        color: var(--wt-gray);
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+    .exam-hint {
+        color: var(--wt-accent-bright);
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 24px;
+        color: var(--wt-gray-nav);
+        font-size: 0.9rem;
+    }
+    @media (max-width: 900px) {
+        .exam-preview { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exam-preview">
+    {% if mode == 'marathon' %}
+    <div class="marathon-intro-visual" style="background:#1a1a1a;border-radius:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#39ff14;">
+        <span style="font-size:4rem;font-weight:700;">{{ questions_count }}</span>
+        <small style="color:#ccc;margin-top:8px;">вопросов в марафоне</small>
+    </div>
+    {% else %}
+    {% if mode == 'exam' %}
+    <img src="{{ MEDIA_URL }}images_for_pages/exam.jpg" alt="{{ title }}">
+    {% elif mode == 'normal' %}
+    <img src="{{ MEDIA_URL }}images_for_pages/ordinary.jpg" alt="{{ title }}">
+    {% endif %}
+    <!-- <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop" alt="{{ title }}"> -->
+    {% endif %}
+    <div>
+        <h2>{{ title }}</h2>
+        <p>{{ description }}</p>
+        {% if mode == 'exam' and max_errors %}
+        <p class="exam-hint">Допустимо не более {{ max_errors }} ошибок — затем тест завершится автоматически.</p>
+        {% endif %}
+        {% if mode == 'marathon' %}
+        <p class="exam-hint">Будут показаны все {{ questions_count }} вопросов из базы.</p>
+        {% endif %}
+        <a href="{% url 'test_start' mode %}" class="wt-btn-dark">Начать тестирование!</a>
+    </div>
+</div>
+<a href="{% url 'home' %}" class="back-link">&larr; На главную</a>
+{% endblock %}

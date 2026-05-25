@@ -1,0 +1,858 @@
+{% extends 'base.html' %}
+
+{% block title %}Wrong Turn Racing - Гонка с ПДД{% endblock %}
+
+{% block extra_css %}
+<style>
+    .game-wrapper {
+        background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
+        border-radius: 30px;
+        padding: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 20px;
+    }
+
+    .game-canvas-container {
+        display: flex;
+        justify-content: center;
+        position: relative;
+    }
+
+    canvas {
+        display: block;
+        margin: 0 auto;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        cursor: none;
+        width: 100%;
+        height: auto;
+        background: #2c3e2f;
+    }
+
+    .game-info-panel {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: rgba(0,0,0,0.7);
+        border-radius: 15px;
+        margin-top: 15px;
+        color: white;
+        backdrop-filter: blur(5px);
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .game-stats {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .game-stat {
+        text-align: center;
+    }
+
+    .game-stat-label {
+        font-size: 12px;
+        opacity: 0.7;
+        letter-spacing: 1px;
+    }
+
+    .game-stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #ED5761;
+        text-shadow: 0 0 10px rgba(237,87,97,0.5);
+    }
+
+    .game-controls {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .control-key {
+        background: rgba(255,255,255,0.2);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-family: monospace;
+        font-size: 14px;
+    }
+
+    .restart-game-btn {
+        background: #ED5761;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 25px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+
+    .restart-game-btn:hover {
+        transform: scale(1.05);
+        background: #404B62;
+    }
+
+    .game-question-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: gameFadeIn 0.3s ease;
+    }
+
+    @keyframes gameFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes gameSlideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .game-question-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f0f2f5 100%);
+        border-radius: 30px;
+        max-width: 600px;
+        width: 90%;
+        padding: 30px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        animation: gameSlideUp 0.4s ease;
+    }
+
+    .game-question-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .game-sign-icon {
+        font-size: 50px;
+        margin-bottom: 10px;
+    }
+
+    .game-question-text {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        line-height: 1.4;
+    }
+
+    .game-options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .game-option-btn {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 12px 15px;
+        font-size: 14px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .game-option-btn:hover {
+        border-color: #ED5761;
+        background: #fff5f5;
+        transform: translateX(5px);
+    }
+
+    .game-option-letter {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: #404B62;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        font-weight: bold;
+        margin-right: 12px;
+        font-size: 14px;
+    }
+
+    .game-timer-bar {
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .game-timer-progress {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #ED5761, #404B62);
+        transition: width 0.05s linear;
+    }
+
+    .game-question-footer {
+        text-align: center;
+        font-size: 12px;
+        color: #999;
+    }
+
+    .game-score-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        font-size: 24px;
+        z-index: 1001;
+        animation: gameScorePop 0.5s ease-out forwards;
+        pointer-events: none;
+    }
+
+    @keyframes gameScorePop {
+        0% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -100%) scale(1.5);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .game-options-grid {
+            grid-template-columns: 1fr;
+        }
+        .game-stat-value {
+            font-size: 20px;
+        }
+        .game-info-panel {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-wrapper">
+    <div class="game-canvas-container">
+        <canvas id="gameCanvas" width="800" height="600" style="width: 100%; height: auto; max-width: 800px; aspect-ratio: 800/600"></canvas>
+    </div>
+    
+    <div class="game-info-panel">
+        <div class="game-stats">
+            <div class="game-stat">
+                <div class="game-stat-label">СЧЁТ</div>
+                <div class="game-stat-value" id="gameScore">0</div>
+            </div>
+            <div class="game-stat">
+                <div class="game-stat-label">ЗДОРОВЬЕ</div>
+                <div class="game-stat-value" id="gameHealth">3</div>
+            </div>
+            <div class="game-stat">
+                <div class="game-stat-label">УРОВЕНЬ</div>
+                <div class="game-stat-value" id="gameLevel">1</div>
+            </div>
+        </div>
+        <div class="game-controls">
+            <span class="control-key">←  →</span>
+            <button class="restart-game-btn" onclick="restartGame()">⟳ РЕСТАРТ</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== ЗАГРУЗКА ВОПРОСОВ ИЗ ВАШЕЙ БАЗЫ ДАННЫХ ==========
+let gameQuestionsDB = [];
+
+// Функция загрузки вопросов с сервера
+async function loadQuestionsFromServer() {
+    try {
+        const response = await fetch('/api/questions/');
+        const data = await response.json();
+        
+        if (data.questions && data.questions.length > 0) {
+            gameQuestionsDB = data.questions.map((q, idx) => ({
+                id: q.id,
+                text: q.text,
+                options: q.options || [],
+                correct: q.options ? q.options.indexOf(q.correct) : 0,
+                signIcon: getRandomSignIcon(),
+                signType: "custom"
+            }));
+        } else {
+            // Если вопросов нет, используем тестовые
+            loadDefaultQuestions();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки вопросов:', error);
+        loadDefaultQuestions();
+    }
+}
+
+function getRandomSignIcon() {
+    const icons = ['🚫', '🛣️', '⚠️', '🚶', '🏙️', '🅿️', '⏸️', '🚫🚗'];
+    return icons[Math.floor(Math.random() * icons.length)];
+}
+
+function loadDefaultQuestions() {
+    gameQuestionsDB = [
+        { id: 1, text: "Что означает этот знак?", options: ["Движение запрещено", "Стоянка запрещена", "Въезд запрещён", "Кирпич"], correct: 2, signIcon: "🚫", signType: "stop" },
+        { id: 2, text: "Что означает знак 'Главная дорога'?", options: ["Уступить дорогу", "Главная дорога", "Конец главной дороги", "Движение без остановки"], correct: 1, signIcon: "🛣️", signType: "main" },
+        { id: 3, text: "Максимальная скорость в населённом пункте?", options: ["40 км/ч", "60 км/ч", "80 км/ч", "90 км/ч"], correct: 1, signIcon: "🏙️", signType: "speed" },
+        { id: 4, text: "Что означает знак 'Уступи дорогу'?", options: ["Обязан остановиться", "Уступить дорогу", "Главная дорога", "Движение прямо"], correct: 1, signIcon: "⚠️", signType: "yield" }
+    ];
+}
+
+// ========== НАСТРОЙКИ ИГРЫ ==========
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const LANE_COUNT = 3;
+let LANE_WIDTH = canvas.width / LANE_COUNT;
+const CAR_WIDTH = 50;
+const CAR_HEIGHT = 70;
+
+let gamePlayer = {
+    x: 0,
+    y: canvas.height - CAR_HEIGHT - 20,
+    width: CAR_WIDTH,
+    height: CAR_HEIGHT,
+    lane: 1,
+    health: 3,
+    invincible: 0
+};
+
+let gameEnemies = [];
+let gameRoadSigns = [];
+let gameParticles = [];
+let gamePaused = false;
+let gameRunning = true;
+
+let gameScore = 0;
+let gameLevel = 1;
+let gameFrameCount = 0;
+let enemySpawnCounter = 0;
+let signSpawnCounter = 0;
+
+let baseSpeed = 3;
+let currentSpeed = baseSpeed;
+let gameKeys = { ArrowLeft: false, ArrowRight: false };
+
+function updateLaneWidth() {
+    LANE_WIDTH = canvas.width / LANE_COUNT;
+}
+
+function drawGameCar(ctx, x, y, color, isPlayer = false) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 10);
+    ctx.fill();
+    
+    ctx.fillStyle = '#87CEEB';
+    ctx.beginPath();
+    ctx.roundRect(x + 8, y + 12, 10, 20, 5);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x + CAR_WIDTH - 18, y + 12, 10, 20, 5);
+    ctx.fill();
+    
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x + 5, y + CAR_HEIGHT - 10, 10, 6);
+    ctx.fillRect(x + CAR_WIDTH - 15, y + CAR_HEIGHT - 10, 10, 6);
+    
+    if (isPlayer) {
+        ctx.fillStyle = '#ED5761';
+        ctx.fillRect(x + CAR_WIDTH/2 - 8, y - 5, 16, 8);
+    }
+}
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.moveTo(x+r, y);
+        this.lineTo(x+w-r, y);
+        this.quadraticCurveTo(x+w, y, x+w, y+r);
+        this.lineTo(x+w, y+h-r);
+        this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+        this.lineTo(x+r, y+h);
+        this.quadraticCurveTo(x, y+h, x, y+h-r);
+        this.lineTo(x, y+r);
+        this.quadraticCurveTo(x, y, x+r, y);
+        this.closePath();
+        return this;
+    };
+}
+
+function drawGameRoad() {
+    ctx.fillStyle = '#2c2c2c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 4;
+    for (let i = 1; i < LANE_COUNT; i++) {
+        ctx.beginPath();
+        ctx.setLineDash([20, 30]);
+        ctx.moveTo(i * LANE_WIDTH, 0);
+        ctx.lineTo(i * LANE_WIDTH, canvas.height);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(20, 0);
+    ctx.lineTo(20, canvas.height);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(canvas.width - 20, 0);
+    ctx.lineTo(canvas.width - 20, canvas.height);
+    ctx.stroke();
+    
+    ctx.fillStyle = '#FFD700';
+    for (let i = 0; i < LANE_COUNT; i++) {
+        let dashY = (gameFrameCount * currentSpeed) % 60;
+        for (let y = dashY - 60; y < canvas.height; y += 80) {
+            ctx.fillRect(i * LANE_WIDTH + LANE_WIDTH/2 - 5, y, 10, 30);
+        }
+    }
+}
+
+function drawGameSign(sign) {
+    const x = sign.x;
+    const y = sign.y;
+    
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + CAR_WIDTH/2 - 5, y + CAR_HEIGHT, 10, 20);
+    
+    ctx.fillStyle = '#ED5761';
+    ctx.beginPath();
+    ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + 3, CAR_WIDTH - 6, CAR_HEIGHT - 6, 8);
+    ctx.stroke();
+    
+    ctx.font = `${CAR_HEIGHT - 20}px "Segoe UI Emoji"`;
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(sign.icon, x + CAR_WIDTH/2, y + CAR_HEIGHT/2);
+    
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText('?', x + CAR_WIDTH - 12, y + 12);
+}
+
+function drawGameEnemy(enemy) {
+    drawGameCar(ctx, enemy.x, enemy.y, '#ED5761', false);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(enemy.x + 10, enemy.y + 20, 8, 8);
+    ctx.fillRect(enemy.x + CAR_WIDTH - 18, enemy.y + 20, 8, 8);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(enemy.x + 12, enemy.y + 22, 4, 4);
+    ctx.fillRect(enemy.x + CAR_WIDTH - 16, enemy.y + 22, 4, 4);
+}
+
+function drawGamePlayer() {
+    drawGameCar(ctx, gamePlayer.x, gamePlayer.y, '#4CAF50', true);
+    if (gamePlayer.invincible > 0 && (Math.floor(Date.now() / 100) % 2 === 0)) {
+        ctx.globalAlpha = 0.5;
+        drawGameCar(ctx, gamePlayer.x, gamePlayer.y, '#FFD700', true);
+        ctx.globalAlpha = 1;
+    }
+}
+
+function drawGameParticles() {
+    for (let i = 0; i < gameParticles.length; i++) {
+        ctx.fillStyle = gameParticles[i].color;
+        ctx.beginPath();
+        ctx.arc(gameParticles[i].x, gameParticles[i].y, gameParticles[i].size, 0, Math.PI * 2);
+        ctx.fill();
+        gameParticles[i].x += gameParticles[i].vx;
+        gameParticles[i].y += gameParticles[i].vy;
+        gameParticles[i].life--;
+    }
+    gameParticles = gameParticles.filter(p => p.life > 0);
+}
+
+function addGameExplosion(x, y) {
+    for (let i = 0; i < 15; i++) {
+        gameParticles.push({
+            x: x + CAR_WIDTH/2,
+            y: y + CAR_HEIGHT/2,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            size: Math.random() * 5 + 2,
+            color: `hsl(${Math.random() * 60 + 20}, 80%, 55%)`,
+            life: 30
+        });
+    }
+}
+
+function spawnGameEnemy() {
+    const lane = Math.floor(Math.random() * LANE_COUNT);
+    gameEnemies.push({
+        x: lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2,
+        y: -CAR_HEIGHT,
+        width: CAR_WIDTH,
+        height: CAR_HEIGHT,
+        lane: lane
+    });
+}
+
+function spawnGameRoadSign() {
+    if (gameQuestionsDB.length === 0) return;
+    const lane = Math.floor(Math.random() * LANE_COUNT);
+    const randomQuestion = gameQuestionsDB[Math.floor(Math.random() * gameQuestionsDB.length)];
+    gameRoadSigns.push({
+        x: lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2,
+        y: -CAR_HEIGHT,
+        width: CAR_WIDTH,
+        height: CAR_HEIGHT,
+        lane: lane,
+        question: randomQuestion,
+        icon: randomQuestion.signIcon
+    });
+}
+
+function showScorePopup(points) {
+    const popup = document.createElement('div');
+    popup.className = 'game-score-popup';
+    popup.textContent = `+${points}`;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 500);
+}
+
+function showGameQuestion(questionData, onComplete) {
+    gamePaused = true;
+    
+    const modal = document.createElement('div');
+    modal.className = 'game-question-modal';
+    
+    const optionsHtml = questionData.options.map((opt, idx) => `
+        <button class="game-option-btn" data-opt-index="${idx}">
+            <span class="game-option-letter">${String.fromCharCode(65+idx)}</span>
+            <span class="option-text">${escapeHtml(opt)}</span>
+        </button>
+    `).join('');
+    
+    modal.innerHTML = `
+        <div class="game-question-card">
+            <div class="game-question-header">
+                <div class="game-sign-icon">${questionData.signIcon}</div>
+                <h3 style="color:#ED5761;">❓ ВОПРОС ПДД ❓</h3>
+            </div>
+            <div class="game-question-text">${escapeHtml(questionData.text)}</div>
+            <div class="game-timer-bar">
+                <div class="game-timer-progress" id="gameTimerProgress"></div>
+            </div>
+            <div class="game-options-grid" id="gameOptionsList">
+                ${optionsHtml}
+            </div>
+            <div class="game-question-footer">
+                ⏱ 10 секунд на ответ | Правильный ответ приносит +50 очков
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    let timeLeft = 10;
+    const timerProgress = modal.querySelector('#gameTimerProgress');
+    const timerInterval = setInterval(() => {
+        if (!modal.parentElement) {
+            clearInterval(timerInterval);
+            return;
+        }
+        timeLeft -= 0.1;
+        const percent = (timeLeft / 10) * 100;
+        timerProgress.style.width = `${Math.max(0, percent)}%`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            modal.remove();
+            gamePlayer.health--;
+            document.getElementById('gameHealth').innerText = gamePlayer.health;
+            addGameExplosion(gamePlayer.x, gamePlayer.y);
+            gamePaused = false;
+            
+            if (gamePlayer.health <= 0) {
+                gameRunning = false;
+                setTimeout(() => {
+                    if (confirm(`Игра окончена! Ваш счёт: ${Math.floor(gameScore/10)}\nХотите начать заново?`)) {
+                        restartGame();
+                    }
+                }, 100);
+            }
+            if (onComplete) onComplete(false);
+        }
+    }, 100);
+    
+    const options = modal.querySelectorAll('.game-option-btn');
+    options.forEach(btn => {
+        btn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            const selectedIndex = parseInt(btn.dataset.optIndex);
+            const isCorrect = (selectedIndex === questionData.correct);
+            
+            if (isCorrect) {
+                gameScore += 500;
+                document.getElementById('gameScore').innerText = Math.floor(gameScore / 10);
+                showScorePopup(50);
+                addGameExplosion(canvas.width/2, canvas.height/2);
+                btn.style.background = '#4CAF50';
+                btn.style.color = 'white';
+                setTimeout(() => {
+                    modal.remove();
+                    gamePaused = false;
+                }, 500);
+            } else {
+                gamePlayer.health--;
+                document.getElementById('gameHealth').innerText = gamePlayer.health;
+                addGameExplosion(gamePlayer.x, gamePlayer.y);
+                btn.style.background = '#ED5761';
+                btn.style.color = 'white';
+                
+                const correctBtn = modal.querySelector(`[data-opt-index="${questionData.correct}"]`);
+                if (correctBtn) {
+                    correctBtn.style.background = '#4CAF50';
+                    correctBtn.style.color = 'white';
+                }
+                
+                setTimeout(() => {
+                    modal.remove();
+                    gamePaused = false;
+                }, 1500);
+                
+                if (gamePlayer.health <= 0) {
+                    gameRunning = false;
+                    setTimeout(() => {
+                        if (confirm(`Неправильный ответ! Игра окончена. Счёт: ${Math.floor(gameScore/10)}\nРестарт?`)) {
+                            restartGame();
+                        }
+                    }, 100);
+                }
+            }
+            if (onComplete) onComplete(isCorrect);
+        });
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateGame() {
+    if (gamePaused || !gameRunning) return;
+    
+    gameFrameCount++;
+    
+    if (gameKeys.ArrowLeft && gamePlayer.lane > 0) {
+        gamePlayer.lane--;
+        gamePlayer.x = gamePlayer.lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2;
+        gameKeys.ArrowLeft = false;
+    }
+    if (gameKeys.ArrowRight && gamePlayer.lane < LANE_COUNT - 1) {
+        gamePlayer.lane++;
+        gamePlayer.x = gamePlayer.lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2;
+        gameKeys.ArrowRight = false;
+    }
+    
+    if (gamePlayer.invincible > 0) gamePlayer.invincible--;
+    
+    currentSpeed = baseSpeed + Math.floor(gameLevel / 3);
+    
+    enemySpawnCounter++;
+    let spawnDelay = Math.max(30, 60 - gameLevel * 2);
+    if (enemySpawnCounter > spawnDelay) {
+        enemySpawnCounter = 0;
+        if (gameEnemies.length < 8) spawnGameEnemy();
+    }
+    
+    signSpawnCounter++;
+    if (signSpawnCounter > 120 && gameRoadSigns.length < 3) {
+        signSpawnCounter = 0;
+        spawnGameRoadSign();
+    }
+    
+    for (let i = 0; i < gameEnemies.length; i++) {
+        gameEnemies[i].y += currentSpeed;
+        if (gameEnemies[i].y > canvas.height) {
+            gameEnemies.splice(i, 1);
+            i--;
+            continue;
+        }
+        
+        if (gamePlayer.invincible === 0 &&
+            gameEnemies[i].x < gamePlayer.x + CAR_WIDTH &&
+            gameEnemies[i].x + CAR_WIDTH > gamePlayer.x &&
+            gameEnemies[i].y < gamePlayer.y + CAR_HEIGHT &&
+            gameEnemies[i].y + CAR_HEIGHT > gamePlayer.y) {
+            
+            gamePlayer.health--;
+            gamePlayer.invincible = 40;
+            addGameExplosion(gamePlayer.x, gamePlayer.y);
+            document.getElementById('gameHealth').innerText = gamePlayer.health;
+            gameEnemies.splice(i, 1);
+            i--;
+            
+            if (gamePlayer.health <= 0) {
+                gameRunning = false;
+                gamePaused = true;
+                setTimeout(() => {
+                    if (confirm(`Игра окончена! Ваш счёт: ${Math.floor(gameScore/10)}\nХотите начать заново?`)) {
+                        restartGame();
+                    }
+                }, 100);
+            }
+            continue;
+        }
+    }
+    
+    for (let i = 0; i < gameRoadSigns.length; i++) {
+        gameRoadSigns[i].y += currentSpeed;
+        if (gameRoadSigns[i].y > canvas.height) {
+            gameRoadSigns.splice(i, 1);
+            i--;
+            continue;
+        }
+        
+        if (gameRoadSigns[i].y + CAR_HEIGHT > gamePlayer.y &&
+            gameRoadSigns[i].y < gamePlayer.y + CAR_HEIGHT &&
+            Math.abs(gameRoadSigns[i].x - gamePlayer.x) < CAR_WIDTH) {
+            
+            const sign = gameRoadSigns[i];
+            showGameQuestion(sign.question);
+            gameRoadSigns.splice(i, 1);
+            i--;
+        }
+    }
+    
+    gameScore++;
+    document.getElementById('gameScore').innerText = Math.floor(gameScore / 10);
+    
+    let newLevel = Math.floor(gameScore / 500) + 1;
+    if (newLevel > gameLevel) {
+        gameLevel = newLevel;
+        document.getElementById('gameLevel').innerText = gameLevel;
+        addGameExplosion(canvas.width/2, canvas.height/2);
+    }
+}
+
+function render() {
+    if (!gameRunning && !gamePaused) return;
+    
+    drawGameRoad();
+    
+    for (let enemy of gameEnemies) {
+        drawGameEnemy(enemy);
+    }
+    
+    for (let sign of gameRoadSigns) {
+        drawGameSign(sign);
+    }
+    
+    drawGamePlayer();
+    drawGameParticles();
+    
+    for (let i = 0; i < gamePlayer.health; i++) {
+        ctx.fillStyle = '#ED5761';
+        ctx.beginPath();
+        ctx.arc(30 + i * 30, 40, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('❤️', 22 + i * 30, 46);
+    }
+}
+
+function restartGame() {
+    gamePlayer = {
+        x: LANE_WIDTH * 1 + (LANE_WIDTH - CAR_WIDTH) / 2,
+        y: canvas.height - CAR_HEIGHT - 20,
+        width: CAR_WIDTH,
+        height: CAR_HEIGHT,
+        lane: 1,
+        health: 3,
+        invincible: 0
+    };
+    gameEnemies = [];
+    gameRoadSigns = [];
+    gameScore = 0;
+    gameLevel = 1;
+    gameFrameCount = 0;
+    enemySpawnCounter = 0;
+    signSpawnCounter = 0;
+    gameRunning = true;
+    gamePaused = false;
+    gameParticles = [];
+    
+    document.getElementById('gameScore').innerText = '0';
+    document.getElementById('gameHealth').innerText = '3';
+    document.getElementById('gameLevel').innerText = '1';
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        gameKeys.ArrowLeft = true;
+        e.preventDefault();
+    } else if (e.key === 'ArrowRight') {
+        gameKeys.ArrowRight = true;
+        e.preventDefault();
+    }
+});
+
+window.addEventListener('resize', () => {
+    updateLaneWidth();
+    gamePlayer.x = gamePlayer.lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2;
+});
+
+function gameLoop() {
+    updateGame();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+// Запуск игры после загрузки вопросов
+async function initGame() {
+    await loadQuestionsFromServer();
+    updateLaneWidth();
+    gamePlayer.x = gamePlayer.lane * LANE_WIDTH + (LANE_WIDTH - CAR_WIDTH) / 2;
+    gameLoop();
+}
+
+initGame();
+</script>
+{% endblock %}
