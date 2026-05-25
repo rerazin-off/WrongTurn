@@ -27,4 +27,5 @@ jobs:
         pip install -r SiteWrongTurn/WrongTurn/requirements.txt
     - name: Run Tests
       run: |
-        python SiteWrongTurn/WrongTurn/manage.py test
+        cd SiteWrongTurn/WrongTurn
+        python manage.py test SiteWrongTurn
