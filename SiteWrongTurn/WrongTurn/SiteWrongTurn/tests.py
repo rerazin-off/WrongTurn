@@ -2,9 +2,17 @@ import json
 
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.utils import timezone
 
-from .forms import RegistrationForm
-from .models import User, Bank_questions
+from .forms import RegistrationForm, ProfileForm
+from .models import User, Bank_questions, Results_testings
+from .testing_utils import (
+    build_question_ids_for_mode,
+    count_errors,
+    pack_incorrect_answers,
+    question_to_dict,
+    should_stop_exam,
+)
 
 VALID_PASSWORD = 'Test1234!'
 
