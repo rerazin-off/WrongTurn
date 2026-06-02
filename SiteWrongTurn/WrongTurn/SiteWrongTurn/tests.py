@@ -2,9 +2,17 @@ import json
 
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.utils import timezone
 
-from .forms import RegistrationForm
-from .models import User, Bank_questions
+from .forms import RegistrationForm, ProfileForm
+from .models import User, Bank_questions, Results_testings
+from .testing_utils import (
+    build_question_ids_for_mode,
+    count_errors,
+    pack_incorrect_answers,
+    question_to_dict,
+    should_stop_exam,
+)
 
 VALID_PASSWORD = 'Test1234!'
 
@@ -509,3 +517,389 @@ class AdminToolsTests(TestCase):
         self.assertFalse(
             Bank_questions.objects.filter(question_text='Гостевой JSON').exists(),
         )
+
+class InterfaceAppTests(TestCase):
+    """Главная, профиль, игровая страница и панель администратора."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='ui_user',
+            email='ui@example.com',
+            password=VALID_PASSWORD,
+            first_name='Иван',
+            last_name='Иванов',
+        )
+        self.staff = User.objects.create_user(
+            username='ui_admin',
+            email='ui_admin@example.com',
+            password=VALID_PASSWORD,
+            is_staff=True,
+        )
+        self.client = Client()
+        self.client.login(username='ui_user', password=VALID_PASSWORD)
+
+
+    def test_home_page_available_for_logged_in_user(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_home_page_contains_profile_form(self):
+        response = self.client.get(reverse('home'))
+        self.assertIn('profile_form', response.context)
+        self.assertIsInstance(response.context['profile_form'], ProfileForm)
+
+    def test_user_can_update_first_name_in_profile(self):
+        response = self.client.post(reverse('profile_update'), {
+            'first_name': 'Пётр',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'ui@example.com',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'Пётр')
+
+    def test_user_can_update_email_in_profile(self):
+        response = self.client.post(reverse('profile_update'), {
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'new_ui@example.com',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'new_ui@example.com')
+
+    def test_profile_update_redirects_to_home(self):
+        response = self.client.post(reverse('profile_update'), {
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'ui@example.com',
+        })
+        self.assertIn('/home/', response.url)
+
+    def test_profile_form_valid_with_required_fields(self):
+        form = ProfileForm(data={
+            'first_name': 'Анна',
+            'last_name': 'Смирнова',
+            'patronymic': '',
+            'email': 'anna@example.com',
+        }, instance=self.user)
+        self.assertTrue(form.is_valid())
+
+    def test_user_can_save_patronymic_in_profile(self):
+        self.client.post(reverse('profile_update'), {
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': 'Сергеевич',
+            'email': 'ui@example.com',
+        })
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.patronymic, 'Сергеевич')
+
+    def test_game_page_available_for_logged_in_user(self):
+        response = self.client.get(reverse('game'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_dashboard_available_for_staff(self):
+        client = Client()
+        client.login(username='ui_admin', password=VALID_PASSWORD)
+        response = client.get(reverse('admin_dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_home_shows_questions_count_from_database(self):
+        admin = self.staff
+        for i in range(3):
+            Bank_questions.objects.create(
+                question_text=f'Вопрос UI {i}',
+                right_answer='A',
+                incorrect_answers=pack_incorrect_answers(['B', 'C', 'D']),
+                admin=admin,
+            )
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.context['questions_count'], 3)
+
+    # --- негативные ---
+
+    def test_guest_cannot_open_home(self):
+        guest = Client()
+        response = guest.get(reverse('home'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_guest_cannot_update_profile(self):
+        guest = Client()
+        response = guest.post(reverse('profile_update'), {
+            'first_name': 'Хакер',
+            'last_name': 'Хакеров',
+            'email': 'hack@example.com',
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_guest_cannot_open_game_page(self):
+        guest = Client()
+        response = guest.get(reverse('game'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_regular_user_cannot_open_admin_dashboard(self):
+        response = self.client.get(reverse('admin_dashboard'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_guest_cannot_open_admin_dashboard(self):
+        guest = Client()
+        response = guest.get(reverse('admin_dashboard'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_profile_rejects_invalid_email(self):
+        form = ProfileForm(data={
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'bad-email',
+        }, instance=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_profile_rejects_duplicate_email(self):
+        User.objects.create_user(
+            username='other_ui',
+            email='taken@example.com',
+            password=VALID_PASSWORD,
+        )
+        form = ProfileForm(data={
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'taken@example.com',
+        }, instance=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_profile_requires_first_name(self):
+        form = ProfileForm(data={
+            'first_name': '',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'ui@example.com',
+        }, instance=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('first_name', form.errors)
+
+    def test_invalid_profile_post_does_not_change_user_data(self):
+        old_email = self.user.email
+        self.client.post(reverse('profile_update'), {
+            'first_name': 'Иван',
+            'last_name': 'Иванов',
+            'patronymic': '',
+            'email': 'not-email',
+        })
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, old_email)
+
+    def test_profile_requires_last_name(self):
+        form = ProfileForm(data={
+            'first_name': 'Иван',
+            'last_name': '',
+            'patronymic': '',
+            'email': 'ui@example.com',
+        }, instance=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('last_name', form.errors)
+
+
+class ExamTestingTests(TestCase):
+    """Режимы теста, сессия, ответы и результаты."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username='exam_admin',
+            email='exam_admin@example.com',
+            password=VALID_PASSWORD,
+            is_staff=True,
+        )
+        self.user = User.objects.create_user(
+            username='exam_user',
+            email='exam_user@example.com',
+            password=VALID_PASSWORD,
+        )
+        self.questions = []
+        for i in range(20):
+            self.questions.append(Bank_questions.objects.create(
+                question_text=f'Экзаменационный вопрос {i}',
+                right_answer='Верно',
+                incorrect_answers=pack_incorrect_answers(['Неверно 1', 'Неверно 2', 'Неверно 3']),
+                admin=self.admin,
+            ))
+        self.client = Client()
+        self.client.login(username='exam_user', password=VALID_PASSWORD)
+
+    def _start_normal_test(self):
+        self.client.get(reverse('test_start', kwargs={'mode': 'normal'}))
+
+    def test_test_intro_page_for_normal_mode(self):
+        response = self.client.get(reverse('test_intro', kwargs={'mode': 'normal'}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['mode'], 'normal')
+
+    def test_test_intro_page_for_exam_mode(self):
+        response = self.client.get(reverse('test_intro', kwargs={'mode': 'exam'}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['title'], 'Режим экзамен')
+
+    def test_test_start_creates_active_test_in_session(self):
+        self._start_normal_test()
+        self.assertIn('active_test', self.client.session)
+        self.assertEqual(self.client.session['active_test']['mode'], 'normal')
+
+    def test_test_question_page_opens_with_active_session(self):
+        self._start_normal_test()
+        response = self.client.get(reverse('test_question'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('question', response.context)
+
+    def test_correct_answer_moves_to_next_question(self):
+        self._start_normal_test()
+        qid = self.client.session['active_test']['question_ids'][0]
+        question = Bank_questions.objects.get(id_question=qid)
+        self.client.post(reverse('test_answer'), {'answer': question.right_answer})
+        session_data = self.client.session['active_test']
+        self.assertEqual(session_data['current_index'], 1)
+        self.assertTrue(session_data['answers'][0]['is_correct'])
+
+    def test_test_finish_saves_result_to_database(self):
+        q = self.questions[0]
+        session = self.client.session
+        session['active_test'] = {
+            'mode': 'normal',
+            'question_ids': [q.id_question],
+            'current_index': 1,
+            'answers': [{
+                'question_id': q.id_question,
+                'question_text': q.question_text,
+                'selected': q.right_answer,
+                'right_answer': q.right_answer,
+                'is_correct': True,
+            }],
+            'start_time': timezone.now().isoformat(),
+            'stopped_early': False,
+        }
+        session.save()
+        self.client.get(reverse('test_finish'))
+        self.assertTrue(
+            Results_testings.objects.filter(id_test__id_user=self.user).exists(),
+        )
+
+    def test_test_results_page_after_finish(self):
+        q = self.questions[0]
+        session = self.client.session
+        session['active_test'] = {
+            'mode': 'normal',
+            'question_ids': [q.id_question],
+            'current_index': 1,
+            'answers': [{
+                'question_id': q.id_question,
+                'question_text': q.question_text,
+                'selected': q.right_answer,
+                'right_answer': q.right_answer,
+                'is_correct': True,
+            }],
+            'start_time': timezone.now().isoformat(),
+            'stopped_early': False,
+        }
+        session.save()
+        self.client.get(reverse('test_finish'))
+        response = self.client.get(reverse('test_results'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['result']['correct'], 1)
+
+    def test_question_to_dict_contains_answer_options(self):
+        data = question_to_dict(self.questions[0], shuffle_options=False)
+        self.assertIn('Верно', data['options'])
+        self.assertGreaterEqual(len(data['options']), 2)
+
+    def test_count_errors_counts_wrong_answers(self):
+        answers = [
+            {'is_correct': True},
+            {'is_correct': False},
+            {'is_correct': False},
+        ]
+        self.assertEqual(count_errors(answers), 2)
+
+    def test_exam_stops_after_two_mistakes(self):
+        session_data = {
+            'mode': 'exam',
+            'answers': [{'is_correct': False}, {'is_correct': False}],
+        }
+        self.assertTrue(should_stop_exam(session_data))
+
+    # --- негативные ---
+
+    def test_unknown_mode_intro_redirects_home(self):
+        response = self.client.get(reverse('test_intro', kwargs={'mode': 'unknown'}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_test_start_without_questions_redirects_home(self):
+        Bank_questions.objects.all().delete()
+        response = self.client.get(reverse('test_start', kwargs={'mode': 'normal'}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_test_question_without_session_redirects_home(self):
+        response = self.client.get(reverse('test_question'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_guest_cannot_start_test(self):
+        guest = Client()
+        response = guest.get(reverse('test_start', kwargs={'mode': 'normal'}))
+        self.assertEqual(response.status_code, 302)
+
+    def test_test_results_without_session_redirects_home(self):
+        response = self.client.get(reverse('test_results'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_test_finish_without_answers_redirects_home(self):
+        session = self.client.session
+        session['active_test'] = {
+            'mode': 'normal',
+            'question_ids': [self.questions[0].id_question],
+            'current_index': 0,
+            'answers': [],
+            'start_time': timezone.now().isoformat(),
+            'stopped_early': False,
+        }
+        session.save()
+        response = self.client.get(reverse('test_finish'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_not_enough_questions_for_normal_mode_returns_none(self):
+        Bank_questions.objects.all().delete()
+        for i in range(5):
+            Bank_questions.objects.create(
+                question_text=f'Мало {i}',
+                right_answer='A',
+                incorrect_answers=pack_incorrect_answers(['B', 'C', 'D']),
+                admin=self.admin,
+            )
+        self.assertIsNone(build_question_ids_for_mode('normal'))
+
+    def test_unknown_mode_start_redirects_home(self):
+        response = self.client.get(reverse('test_start', kwargs={'mode': 'bad_mode'}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_wrong_answer_saved_as_incorrect_in_session(self):
+        self._start_normal_test()
+        qid = self.client.session['active_test']['question_ids'][0]
+        question = Bank_questions.objects.get(id_question=qid)
+        self.client.post(reverse('test_answer'), {'answer': 'Неверно 1'})
+        answer = self.client.session['active_test']['answers'][0]
+        self.assertFalse(answer['is_correct'])
+
+    def test_guest_cannot_open_test_question_page(self):
+        guest = Client()
+        response = guest.get(reverse('test_question'))
+        self.assertEqual(response.status_code, 302)
