@@ -1,0 +1,15 @@
+.git
+.gitignore
+.tox
+__pycache__
+*.py[cod]
+*.sqlite3
+db.sqlite3
+.env
+.venv
+venv
+staticfiles
+# media/ монтируется с хоста через docker-compose; при сборке копируется, если есть
+*.md
+_list_images.py
+_setup_mode_images.py
